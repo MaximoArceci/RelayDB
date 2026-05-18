@@ -1,3 +1,4 @@
+from app.schemas.auth import AuthResponse, User, UserCreate, UserLogin
 from app.schemas.environments import (
     ActiveEnvironmentResponse,
     Environment,
@@ -14,4 +15,8 @@ __all__ = [
     "EnvironmentListResponse",
     "ActiveEnvironmentResponse",
     "SwitchActiveResponse",
+    "User",
+    "UserCreate",
+    "UserLogin",
+    "AuthResponse",
 ]

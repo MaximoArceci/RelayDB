@@ -39,6 +39,10 @@ RELAYDB_ROUTER_PUBLIC_PORT=15432 docker compose up --build
 ## API
 
 ```text
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+GET  /api/v1/auth/me
+POST /api/v1/auth/logout
 POST /api/v1/environments
 POST /api/v1/environments/create
 GET  /api/v1/environments
@@ -48,6 +52,8 @@ POST /api/v1/environments/{id}/start
 POST /api/v1/environments/{id}/stop
 DELETE /api/v1/environments/{id}
 ```
+
+Environment APIs require `Authorization: Bearer <token>`. Authorization is intentionally simple for now: every authenticated user can access every environment.
 
 Example provisioning body:
 
@@ -66,4 +72,6 @@ Example provisioning body:
 
 The backend mounts `/var/run/docker.sock` so it can create Docker volumes, containers, and attach environments to `relaydb-network`. Managed PostgreSQL containers are not exposed to the host; the router remains the stable entrypoint.
 
-No authentication, Kafka, snapshots, cloning, RBAC, Kubernetes, or AI are implemented in this MVP.
+User auth is stored in SQLite at `/relaydb-state/relaydb.db`. The current schema creates a `users` table and a `sessions` table.
+
+No RBAC, Kafka, snapshots, cloning, Kubernetes, or AI are implemented in this MVP.

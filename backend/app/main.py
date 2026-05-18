@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import api_router
 from app.core.settings import settings
 from app.services.environment_registry import EnvironmentRegistry
+from app.services.user_service import UserService
 
 app = FastAPI(
     title="RelayDB API",
@@ -26,6 +27,7 @@ app.include_router(api_router)
 
 @app.on_event("startup")
 def seed_example_environments() -> None:
+    UserService()
     EnvironmentRegistry().seed_examples_if_empty()
 
 

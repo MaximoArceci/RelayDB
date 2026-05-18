@@ -18,6 +18,11 @@ The FastAPI backend provisions PostgreSQL environments with Docker SDK for
 Python. A managed environment contains one `postgres:16` container and one
 dedicated Docker volume mounted at `/var/lib/postgresql/data`.
 
+The backend also owns minimal authentication. User records live in SQLite at
+`/relaydb-state/relaydb.db` in a `users` table, and bearer sessions live in a
+`sessions` table. Authorization is currently coarse-grained: every
+authenticated user can access every environment.
+
 The backend also sets the active target. Runtime metadata is stored in a shared
 JSON file mounted into the backend and router containers. This keeps the MVP
 simple while allowing the router to run as a separate process.
@@ -43,4 +48,4 @@ The router does not parse SQL or PostgreSQL protocol messages.
 - Active target changes close existing router connections so clients reconnect to the new target.
 - Environment metadata is in shared file state, not durable application storage.
 - PostgreSQL readiness is currently Docker-container lifecycle level, not a deep SQL health check.
-- Snapshots, cloning, Kubernetes, auth, RBAC, and SQL parsing are intentionally out of scope.
+- Snapshots, cloning, Kubernetes, RBAC, and SQL parsing are intentionally out of scope.

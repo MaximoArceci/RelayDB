@@ -1,8 +1,15 @@
+import { getAuthToken } from "./auth";
+
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+
+export function authHeaders(): Record<string, string> {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", ...authHeaders() },
     signal,
   });
 

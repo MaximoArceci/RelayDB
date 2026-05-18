@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     api_env: str = "local"
     cors_origins_raw: str = Field(default="http://localhost:3001,http://localhost:3000", validation_alias="CORS_ORIGINS")
     state_path: str = "/relaydb-state/environments.json"
+    database_path: str = "/relaydb-state/relaydb.db"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="")
 

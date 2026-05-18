@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 
+from app.api.dependencies import get_current_user
 from app.schemas import ActiveEnvironmentResponse, Environment, EnvironmentCreate, EnvironmentListResponse, EnvironmentProvisionRequest, SwitchActiveResponse
 from app.services.environment_service import EnvironmentService
 from app.services.environment_registry import EnvironmentRegistry
 
-router = APIRouter(prefix="/environments", tags=["environments"])
+router = APIRouter(prefix="/environments", tags=["environments"], dependencies=[Depends(get_current_user)])
 
 
 def get_registry() -> EnvironmentRegistry:

@@ -1,8 +1,9 @@
-import { Cable, Database, Plus, Search, ServerCog, X } from "lucide-react";
+import { Cable, Database, LogOut, Plus, Search, ServerCog, X } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { LoadingState } from "../components/LoadingState";
 import { useEnvironmentPlatform } from "../hooks/useEnvironmentPlatform";
+import { AuthPanel } from "../modules/auth/AuthPanel";
 import { ActiveEnvironmentView } from "../modules/environments/ActiveEnvironmentView";
 import { EnvironmentList } from "../modules/environments/EnvironmentList";
 
@@ -16,6 +17,11 @@ export function RelayDBShell() {
     isProvisioning,
     actingEnvironmentId,
     error,
+    user,
+    isAuthLoading,
+    loginUser,
+    registerUser,
+    logoutUser,
     mountEnvironment,
     provisionEnvironment,
     startManagedEnvironment,
@@ -34,6 +40,10 @@ export function RelayDBShell() {
     await provisionEnvironment(name);
     setEnvironmentName("");
     setIsCreateOpen(false);
+  }
+
+  if (!user) {
+    return <AuthPanel error={error} isLoading={isAuthLoading} onLogin={loginUser} onRegister={registerUser} />;
   }
 
   return (
@@ -70,12 +80,17 @@ export function RelayDBShell() {
           <Cable className="h-3.5 w-3.5" />
           localhost:5432
         </div>
+        <div className="hidden rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-1.5 text-xs text-slate-300 lg:block">{user.email}</div>
         <button
           onClick={() => setIsCreateOpen(true)}
           className="inline-flex h-9 items-center gap-2 rounded-lg border border-cyan-300/30 bg-cyan-300/10 px-3 text-sm font-medium text-cyan-100 transition hover:border-cyan-300/60 hover:bg-cyan-300/15"
         >
           <Plus className="h-4 w-4" />
           Create
+        </button>
+        <button onClick={logoutUser} className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-800 px-3 text-sm text-slate-300 transition hover:text-white">
+          <LogOut className="h-4 w-4" />
+          Logout
         </button>
       </header>
 

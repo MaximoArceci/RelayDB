@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { clearAuthToken, getCurrentUser, login, logout, register, setAuthToken } from "../api/auth";
 import { createEnvironment, deleteEnvironment, getActiveEnvironment, getEnvironments, startEnvironment, stopEnvironment, switchEnvironment } from "../api/environments";
 import { useEnvironmentStore } from "../stores/environmentStore";
 
@@ -7,6 +8,26 @@ export function useEnvironmentPlatform() {
   const setState = useEnvironmentStore((store) => store.setState);
 
   useEffect(() => {
+    const controller = new AbortController();
+    setState({ isAuthLoading: true, error: null });
+
+    getCurrentUser(controller.signal)
+      .then((user) => {
+        setState({ user, isAuthLoading: false });
+      })
+      .catch(() => {
+        clearAuthToken();
+        setState({ user: null, isAuthLoading: false, isLoading: false });
+      });
+
+    return () => controller.abort();
+  }, [setState]);
+
+  useEffect(() => {
+    if (!state.user) {
+      return;
+    }
+
     const controller = new AbortController();
     setState({ isLoading: true, error: null });
 
@@ -26,7 +47,44 @@ export function useEnvironmentPlatform() {
       });
 
     return () => controller.abort();
-  }, [setState]);
+  }, [setState, state.user]);
+
+  async function loginUser(email: string, password: string) {
+    setState({ isAuthLoading: true, error: null });
+    try {
+      const result = await login({ email, password });
+      setAuthToken(result.token);
+      setState({ user: result.user, isAuthLoading: false, isLoading: true, error: null });
+    } catch (error) {
+      setState({ isAuthLoading: false, error: error instanceof Error ? error.message : "Unable to login" });
+    }
+  }
+
+  async function registerUser(name: string, email: string, password: string) {
+    setState({ isAuthLoading: true, error: null });
+    try {
+      const result = await register({ name, email, password });
+      setAuthToken(result.token);
+      setState({ user: result.user, isAuthLoading: false, isLoading: true, error: null });
+    } catch (error) {
+      setState({ isAuthLoading: false, error: error instanceof Error ? error.message : "Unable to register" });
+    }
+  }
+
+  async function logoutUser() {
+    await logout();
+    setState({
+      user: null,
+      environments: [],
+      active: null,
+      selectedEnvironmentId: null,
+      isLoading: false,
+      isSwitching: false,
+      isProvisioning: false,
+      actingEnvironmentId: null,
+      error: null,
+    });
+  }
 
   async function mountEnvironment(environmentId: string) {
     const previousActive = state.active;
@@ -127,5 +185,15 @@ export function useEnvironmentPlatform() {
     }
   }
 
-  return { ...state, mountEnvironment, provisionEnvironment, startManagedEnvironment, stopManagedEnvironment, deleteManagedEnvironment };
+  return {
+    ...state,
+    loginUser,
+    registerUser,
+    logoutUser,
+    mountEnvironment,
+    provisionEnvironment,
+    startManagedEnvironment,
+    stopManagedEnvironment,
+    deleteManagedEnvironment,
+  };
 }
