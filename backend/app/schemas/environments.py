@@ -23,6 +23,17 @@ class EnvironmentProvisionRequest(BaseModel):
     name: str = Field(min_length=1)
 
 
+class SqlExecutionRequest(BaseModel):
+    sql: str = Field(min_length=1)
+
+
+class SqlExecutionResponse(BaseModel):
+    columns: list[str]
+    rows: list[dict]
+    row_count: int
+    command: str
+
+
 class EnvironmentListResponse(BaseModel):
     environments: list[Environment]
     active_environment_id: str | None

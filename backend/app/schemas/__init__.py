@@ -4,6 +4,8 @@ from app.schemas.environments import (
     EnvironmentCreate,
     EnvironmentListResponse,
     EnvironmentProvisionRequest,
+    SqlExecutionRequest,
+    SqlExecutionResponse,
     SwitchActiveResponse,
 )
 
@@ -11,6 +13,8 @@ __all__ = [
     "Environment",
     "EnvironmentCreate",
     "EnvironmentProvisionRequest",
+    "SqlExecutionRequest",
+    "SqlExecutionResponse",
     "EnvironmentListResponse",
     "ActiveEnvironmentResponse",
     "SwitchActiveResponse",

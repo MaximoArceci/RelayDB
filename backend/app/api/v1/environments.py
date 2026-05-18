@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 
-from app.schemas import ActiveEnvironmentResponse, Environment, EnvironmentCreate, EnvironmentListResponse, EnvironmentProvisionRequest, SwitchActiveResponse
+from app.schemas import ActiveEnvironmentResponse, Environment, EnvironmentCreate, EnvironmentListResponse, EnvironmentProvisionRequest, SqlExecutionRequest, SqlExecutionResponse, SwitchActiveResponse
 from app.services.environment_service import EnvironmentService
 from app.services.environment_registry import EnvironmentRegistry
+from app.services.sql_service import SqlService
 
 router = APIRouter(prefix="/environments", tags=["environments"])
 
@@ -13,6 +14,10 @@ def get_registry() -> EnvironmentRegistry:
 
 def get_environment_service() -> EnvironmentService:
     return EnvironmentService()
+
+
+def get_sql_service() -> SqlService:
+    return SqlService()
 
 
 @router.post("", response_model=Environment)
@@ -38,6 +43,15 @@ def set_active_environment(environment_id: str, registry: EnvironmentRegistry = 
 @router.get("/active", response_model=ActiveEnvironmentResponse)
 def get_active_environment(registry: EnvironmentRegistry = Depends(get_registry)) -> ActiveEnvironmentResponse:
     return registry.get_active_environment()
+
+
+@router.post("/{environment_id}/sql", response_model=SqlExecutionResponse)
+def execute_sql(
+    environment_id: str,
+    payload: SqlExecutionRequest,
+    service: SqlService = Depends(get_sql_service),
+) -> SqlExecutionResponse:
+    return service.execute(environment_id, payload.sql)
 
 
 @router.post("/{environment_id}/start", response_model=Environment)

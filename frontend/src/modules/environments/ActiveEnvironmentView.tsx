@@ -1,6 +1,7 @@
 import { ArrowDown, Cable, Database, HardDrive, Network, ServerCog, TerminalSquare, type LucideIcon } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
 import type { ActiveEnvironmentResponse } from "../../types/environments";
+import { SqlConsole } from "./SqlConsole";
 
 export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveEnvironmentResponse | null; isSwitching: boolean }) {
   const environment = active?.environment;
@@ -59,6 +60,8 @@ export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveE
           postgresql://postgres:postgres@localhost:5432/app
         </div>
       </div>
+
+      <SqlConsole environment={environment} />
     </section>
   );
 }

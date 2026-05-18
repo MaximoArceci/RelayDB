@@ -38,6 +38,10 @@ in both directions.
 
 The router does not parse SQL or PostgreSQL protocol messages.
 
+SQL execution from the control plane is separate from the TCP router. The API
+connects directly to the selected environment over `relaydb-network` with
+`psycopg` and returns columns, rows, row count, and command status to the UI.
+
 ## Current Limits
 
 - Active target changes close existing router connections so clients reconnect to the new target.

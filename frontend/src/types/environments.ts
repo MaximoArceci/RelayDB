@@ -26,3 +26,10 @@ export interface ActiveEnvironmentResponse {
   environment: PostgresEnvironment | null;
   stable_endpoint: string;
 }
+
+export interface SqlExecutionResponse {
+  columns: string[];
+  rows: Record<string, unknown>[];
+  row_count: number;
+  command: string;
+}

@@ -1,5 +1,5 @@
 import { apiGet } from "./client";
-import type { ActiveEnvironmentResponse, CreateEnvironmentPayload, EnvironmentsResponse, PostgresEnvironment } from "../types/environments";
+import type { ActiveEnvironmentResponse, CreateEnvironmentPayload, EnvironmentsResponse, PostgresEnvironment, SqlExecutionResponse } from "../types/environments";
 
 export function getEnvironments(signal?: AbortSignal) {
   return apiGet<EnvironmentsResponse>("/api/v1/environments", signal);
@@ -87,4 +87,19 @@ export async function deleteEnvironment(environmentId: string, removeVolume = fa
   }
 
   return response.json() as Promise<PostgresEnvironment>;
+}
+
+export async function executeSql(environmentId: string, sql: string) {
+  const response = await fetch(`/api/v1/environments/${environmentId}/sql`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ sql }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.json().catch(() => null);
+    throw new Error(detail?.detail ?? `SQL execution failed with ${response.status}`);
+  }
+
+  return response.json() as Promise<SqlExecutionResponse>;
 }

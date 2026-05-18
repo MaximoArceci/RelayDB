@@ -44,9 +44,18 @@ POST /api/v1/environments/create
 GET  /api/v1/environments
 POST /api/v1/environments/active/{id}
 GET  /api/v1/environments/active
+POST /api/v1/environments/{id}/sql
 POST /api/v1/environments/{id}/start
 POST /api/v1/environments/{id}/stop
 DELETE /api/v1/environments/{id}
+```
+
+Example SQL execution body:
+
+```json
+{
+  "sql": "select current_database(), current_user;"
+}
 ```
 
 Example provisioning body:
