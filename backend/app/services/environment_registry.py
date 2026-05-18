@@ -6,7 +6,7 @@ from fastapi import HTTPException
 
 from app.schemas import ActiveEnvironmentResponse, Environment, EnvironmentCreate, EnvironmentListResponse, SwitchActiveResponse
 
-STATE_PATH = Path("/switchbase-state/environments.json")
+STATE_PATH = Path("/relaydb-state/environments.json")
 STABLE_ENDPOINT = "localhost:5432"
 
 

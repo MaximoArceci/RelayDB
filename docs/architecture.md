@@ -1,12 +1,12 @@
-# Switchbase Architecture
+# RelayDB Architecture
 
-Switchbase is currently an ultra-focused routing MVP.
+RelayDB is currently an ultra-focused routing MVP.
 
 ```text
 Frontend
   -> FastAPI Control API
   -> shared active-target state
-  -> Switchbase TCP Router
+  -> RelayDB TCP Router
   -> selected PostgreSQL instance
 ```
 
@@ -31,4 +31,4 @@ The router does not parse SQL or PostgreSQL protocol messages.
 - Active target changes affect new TCP connections.
 - Existing open TCP connections continue until closed.
 - Registered targets are in shared file state, not durable application storage.
-- PostgreSQL target containers are examples only; Switchbase does not create or manage environments yet.
+- PostgreSQL target containers are examples only; RelayDB does not create or manage environments yet.

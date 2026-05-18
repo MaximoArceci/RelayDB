@@ -1,5 +1,5 @@
-import { SwitchbaseShell } from "./layouts/SwitchbaseShell";
+import { RelayDBShell } from "./layouts/RelayDBShell";
 
 export function App() {
-  return <SwitchbaseShell />;
+  return <RelayDBShell />;
 }

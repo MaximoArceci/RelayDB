@@ -1,8 +1,8 @@
-# Switchbase
+# RelayDB
 
-Switchbase is a minimal developer infrastructure MVP that proves one core idea:
+RelayDB is a minimal developer infrastructure MVP that proves one core idea:
 
-> A developer app connects to one stable local PostgreSQL endpoint while Switchbase forwards traffic to the currently active PostgreSQL target.
+> A developer app connects to one stable local PostgreSQL endpoint while RelayDB forwards traffic to the currently active PostgreSQL target.
 
 The stable endpoint is:
 
@@ -25,7 +25,7 @@ API docs: http://localhost:8000/docs
 If your machine already has PostgreSQL on `5432`, run:
 
 ```bash
-SWITCHBASE_ROUTER_PUBLIC_PORT=15432 docker compose up --build
+RELAYDB_ROUTER_PUBLIC_PORT=15432 docker compose up --build
 ```
 
 ## API
@@ -54,7 +54,7 @@ Example registration body:
 
 - `frontend`: React control UI
 - `backend`: FastAPI control API
-- `switchbase-router`: raw TCP router listening on the stable endpoint
+- `relaydb-router`: raw TCP router listening on the stable endpoint
 - `postgres-dev`: example manually managed PostgreSQL target
 - `postgres-qa`: example manually managed PostgreSQL target
 

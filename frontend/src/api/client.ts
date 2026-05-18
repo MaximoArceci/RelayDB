@@ -7,7 +7,7 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   });
 
   if (!response.ok) {
-    throw new Error(`NexusOps API request failed with ${response.status}`);
+    throw new Error(`RelayDB API request failed with ${response.status}`);
   }
 
   return response.json() as Promise<T>;

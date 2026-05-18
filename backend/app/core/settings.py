@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     api_env: str = "local"
     cors_origins_raw: str = Field(default="http://localhost:3001,http://localhost:3000", validation_alias="CORS_ORIGINS")
-    state_path: str = "/switchbase-state/environments.json"
+    state_path: str = "/relaydb-state/environments.json"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="")
 

@@ -1,3 +1,5 @@
+name: relaydb
+
 services:
   frontend:
     build:
@@ -7,7 +9,7 @@ services:
       - "3001:3000"
     environment:
       VITE_API_BASE_URL: ""
-      VITE_PLATFORM_NAME: Switchbase
+      VITE_PLATFORM_NAME: RelayDB
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
@@ -23,22 +25,22 @@ services:
     environment:
       API_ENV: local
       CORS_ORIGINS: http://localhost:3001,http://localhost:3000
-      STATE_PATH: /switchbase-state/environments.json
+      STATE_PATH: /relaydb-state/environments.json
     volumes:
       - ./backend:/app
-      - switchbase_state:/switchbase-state
+      - relaydb_state:/relaydb-state
 
-  switchbase-router:
+  relaydb-router:
     build:
       context: .
       dockerfile: docker/router.Dockerfile
     ports:
-      - "${SWITCHBASE_ROUTER_PUBLIC_PORT:-5432}:5432"
+      - "${RELAYDB_ROUTER_PUBLIC_PORT:-5432}:5432"
     environment:
-      SWITCHBASE_STATE_PATH: /switchbase-state/environments.json
-      SWITCHBASE_ROUTER_PORT: 5432
+      RELAYDB_STATE_PATH: /relaydb-state/environments.json
+      RELAYDB_ROUTER_PORT: 5432
     volumes:
-      - switchbase_state:/switchbase-state
+      - relaydb_state:/relaydb-state
     depends_on:
       - backend
       - postgres-dev
@@ -64,6 +66,6 @@ services:
 
 volumes:
   frontend_node_modules:
-  switchbase_state:
+  relaydb_state:
   postgres_dev_data:
   postgres_qa_data:

@@ -5,7 +5,7 @@
                                │
                                ▼
                     ┌──────────────────────┐
-                    │   Switchbase API     │
+                    │   RelayDB API     │
                     │ FastAPI Control Plane│
                     └──────────┬───────────┘
                                │

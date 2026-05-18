@@ -6,7 +6,7 @@ from app.core.settings import settings
 from app.services.environment_registry import EnvironmentRegistry
 
 app = FastAPI(
-    title="Switchbase API",
+    title="RelayDB API",
     description="Minimal control API for stable PostgreSQL endpoint routing.",
     version="0.4.0",
     openapi_url="/openapi.json",

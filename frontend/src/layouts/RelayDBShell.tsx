@@ -5,7 +5,7 @@ import { useEnvironmentPlatform } from "../hooks/useEnvironmentPlatform";
 import { ActiveEnvironmentView } from "../modules/environments/ActiveEnvironmentView";
 import { EnvironmentList } from "../modules/environments/EnvironmentList";
 
-export function SwitchbaseShell() {
+export function RelayDBShell() {
   const { environments, active, selectedEnvironmentId, isLoading, isSwitching, error, mountEnvironment } = useEnvironmentPlatform();
 
   return (
@@ -16,7 +16,7 @@ export function SwitchbaseShell() {
             <Database className="h-5 w-5 text-cyan-200" />
           </div>
           <div>
-            <div className="text-sm font-semibold tracking-wide">Switchbase</div>
+            <div className="text-sm font-semibold tracking-wide">RelayDB</div>
             <div className="text-xs text-slate-500">Stable PostgreSQL routing</div>
           </div>
         </div>
@@ -54,7 +54,7 @@ export function SwitchbaseShell() {
               </div>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">One local database URL. One active PostgreSQL target.</h1>
               <p className="mt-2 text-sm text-slate-400">
-                Your app connects to <span className="font-mono text-cyan-100">localhost:5432</span>. Switchbase forwards new TCP connections to the selected external PostgreSQL instance.
+                Your app connects to <span className="font-mono text-cyan-100">localhost:5432</span>. RelayDB forwards new TCP connections to the selected external PostgreSQL instance.
               </p>
             </div>
             <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-4 py-3">
@@ -66,7 +66,7 @@ export function SwitchbaseShell() {
 
         {error ? (
           <section className="xl:col-span-2">
-            <EmptyState title="Switchbase API unavailable" description={error} />
+            <EmptyState title="RelayDB API unavailable" description={error} />
           </section>
         ) : null}
 

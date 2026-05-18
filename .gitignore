@@ -1,4 +1,7 @@
 __pycache__/
 *.py[cod]
 
+frontend/dist/
+*.tsbuildinfo
+
 readme_codex.txt

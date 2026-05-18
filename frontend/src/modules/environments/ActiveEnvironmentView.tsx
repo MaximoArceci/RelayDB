@@ -8,7 +8,7 @@ export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveE
   if (!environment) {
     return (
       <section className="min-h-[520px] rounded-xl border border-slate-800/80 bg-graphite-900/75 p-4 shadow-glow backdrop-blur">
-        <EmptyState title="No active target" description="Register or select a PostgreSQL environment to route the stable Switchbase endpoint." />
+        <EmptyState title="No active target" description="Register or select a PostgreSQL environment to route the stable RelayDB endpoint." />
       </section>
     );
   }
@@ -20,7 +20,7 @@ export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveE
           <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Active Route</div>
           <h2 className="mt-2 text-2xl font-semibold text-white">{environment.name}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-            Your application keeps the same database URL. Switchbase changes the TCP target for new PostgreSQL connections.
+            Your application keeps the same database URL. RelayDB changes the TCP target for new PostgreSQL connections.
           </p>
         </div>
         <div className={`rounded-full border px-3 py-1.5 text-xs ${isSwitching ? "border-signal-yellow/30 bg-signal-yellow/10 text-signal-yellow" : "border-signal-green/30 bg-signal-green/10 text-signal-green"}`}>
@@ -43,7 +43,7 @@ export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveE
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
           <FlowNode icon={TerminalSquare} title="Developer App" detail="DATABASE_URL=postgres://localhost:5432/app" />
           <Arrow />
-          <FlowNode icon={Cable} title="Switchbase Endpoint" detail="localhost:5432" active={isSwitching} />
+          <FlowNode icon={Cable} title="RelayDB Endpoint" detail="localhost:5432" active={isSwitching} />
           <Arrow />
           <FlowNode icon={Database} title="Selected PostgreSQL" detail={`${environment.host}:${environment.port}/${environment.database}`} selected />
         </div>

@@ -5,10 +5,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-STATE_PATH = Path(os.getenv("SWITCHBASE_STATE_PATH", "/switchbase-state/environments.json"))
-LISTEN_HOST = os.getenv("SWITCHBASE_ROUTER_HOST", "0.0.0.0")
-LISTEN_PORT = int(os.getenv("SWITCHBASE_ROUTER_PORT", "5432"))
-STATE_POLL_INTERVAL_SECONDS = float(os.getenv("SWITCHBASE_STATE_POLL_INTERVAL_SECONDS", "0.5"))
+STATE_PATH = Path(os.getenv("RELAYDB_STATE_PATH", "/relaydb-state/environments.json"))
+LISTEN_HOST = os.getenv("RELAYDB_ROUTER_HOST", "0.0.0.0")
+LISTEN_PORT = int(os.getenv("RELAYDB_ROUTER_PORT", "5432"))
+STATE_POLL_INTERVAL_SECONDS = float(os.getenv("RELAYDB_STATE_POLL_INTERVAL_SECONDS", "0.5"))
 
 
 @dataclass(eq=False)
@@ -29,7 +29,7 @@ def load_state() -> dict[str, Any]:
 def load_active_target() -> dict[str, Any]:
     """Read the current active environment for a new incoming connection.
 
-    Switchbase intentionally does not parse PostgreSQL protocol in this MVP.
+    RelayDB intentionally does not parse PostgreSQL protocol in this MVP.
     It opens a raw TCP connection to the selected target and pipes bytes in
     both directions until either side closes.
     """
@@ -144,7 +144,7 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
 async def main() -> None:
     server = await asyncio.start_server(handle_client, LISTEN_HOST, LISTEN_PORT)
     sockets = ", ".join(str(sock.getsockname()) for sock in server.sockets or [])
-    print(f"Switchbase TCP router listening on {sockets}", flush=True)
+    print(f"RelayDB TCP router listening on {sockets}", flush=True)
 
     watcher_task = asyncio.create_task(watch_active_environment())
     async with server:
