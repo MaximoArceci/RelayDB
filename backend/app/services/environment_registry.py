@@ -5,8 +5,9 @@ from uuid import uuid4
 from fastapi import HTTPException
 
 from app.schemas import ActiveEnvironmentResponse, Environment, EnvironmentCreate, EnvironmentListResponse, SwitchActiveResponse
+from app.core.settings import settings
 
-STATE_PATH = Path("/relaydb-state/environments.json")
+STATE_PATH = Path(settings.state_path)
 STABLE_ENDPOINT = "localhost:5432"
 
 
@@ -26,8 +27,11 @@ class EnvironmentRegistry:
             self._write_state({"environments": [], "active_environment_id": None})
 
     def register_environment(self, payload: EnvironmentCreate) -> Environment:
+        environment = Environment(id=str(uuid4()), status="external", managed=False, **payload.model_dump())
+        return self.save_environment(environment)
+
+    def save_environment(self, environment: Environment) -> Environment:
         state = self._read_state()
-        environment = Environment(id=str(uuid4()), **payload.model_dump())
         state["environments"].append(environment.model_dump())
 
         if state["active_environment_id"] is None:
@@ -43,6 +47,10 @@ class EnvironmentRegistry:
             active_environment_id=state["active_environment_id"],
         )
 
+    def get_environment(self, environment_id: str) -> Environment:
+        state = self._read_state()
+        return self._find_environment(state, environment_id)
+
     def get_active_environment(self) -> ActiveEnvironmentResponse:
         state = self._read_state()
         environment = self._find_active(state)
@@ -56,30 +64,26 @@ class EnvironmentRegistry:
         return SwitchActiveResponse(active=environment, stable_endpoint=STABLE_ENDPOINT)
 
     def seed_examples_if_empty(self) -> None:
-        if self.list_environments().environments:
-            return
+        return
 
-        dev = self.register_environment(
-            EnvironmentCreate(
-                name="Local Dev Postgres",
-                host="postgres-dev",
-                port=5432,
-                database="app",
-                username="postgres",
-                password="postgres",
-            )
-        )
-        self.register_environment(
-            EnvironmentCreate(
-                name="QA Postgres",
-                host="postgres-qa",
-                port=5432,
-                database="app",
-                username="postgres",
-                password="postgres",
-            )
-        )
-        self.set_active_environment(dev.id)
+    def update_environment(self, environment_id: str, changes: dict) -> Environment:
+        state = self._read_state()
+        for index, item in enumerate(state["environments"]):
+            if item["id"] == environment_id:
+                updated = {**item, **changes}
+                state["environments"][index] = updated
+                self._write_state(state)
+                return Environment(**updated)
+        raise HTTPException(status_code=404, detail="Environment not found")
+
+    def delete_environment(self, environment_id: str) -> Environment:
+        state = self._read_state()
+        environment = self._find_environment(state, environment_id)
+        state["environments"] = [item for item in state["environments"] if item["id"] != environment_id]
+        if state["active_environment_id"] == environment_id:
+            state["active_environment_id"] = state["environments"][0]["id"] if state["environments"] else None
+        self._write_state(state)
+        return environment
 
     def _find_active(self, state: dict) -> Environment | None:
         active_id = state["active_environment_id"]

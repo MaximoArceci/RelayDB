@@ -12,6 +12,15 @@ class EnvironmentCreate(BaseModel):
 
 class Environment(EnvironmentCreate):
     id: str
+    container_name: str | None = None
+    volume_name: str | None = None
+    status: str = "external"
+    created_at: str | None = None
+    managed: bool = False
+
+
+class EnvironmentProvisionRequest(BaseModel):
+    name: str = Field(min_length=1)
 
 
 class EnvironmentListResponse(BaseModel):

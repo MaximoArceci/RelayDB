@@ -7,6 +7,8 @@ interface EnvironmentState {
   selectedEnvironmentId: string | null;
   isLoading: boolean;
   isSwitching: boolean;
+  isProvisioning: boolean;
+  actingEnvironmentId: string | null;
   error: string | null;
   setState: (state: Partial<EnvironmentState>) => void;
   setSelectedEnvironmentId: (environmentId: string) => void;
@@ -18,6 +20,8 @@ export const useEnvironmentStore = create<EnvironmentState>((set) => ({
   selectedEnvironmentId: null,
   isLoading: true,
   isSwitching: false,
+  isProvisioning: false,
+  actingEnvironmentId: null,
   error: null,
   setState: (state) => set(state),
   setSelectedEnvironmentId: (selectedEnvironmentId) => set({ selectedEnvironmentId }),

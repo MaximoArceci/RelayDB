@@ -1,4 +1,4 @@
-import { ArrowDown, Cable, Database, Network, ServerCog, TerminalSquare } from "lucide-react";
+import { ArrowDown, Cable, Database, HardDrive, Network, ServerCog, TerminalSquare, type LucideIcon } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
 import type { ActiveEnvironmentResponse } from "../../types/environments";
 
@@ -32,6 +32,10 @@ export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveE
         <Info icon={Cable} label="Stable endpoint" value={active.stable_endpoint} />
         <Info icon={Database} label="Target database" value={environment.database} />
         <Info icon={Network} label="Target host" value={`${environment.host}:${environment.port}`} />
+        <Info icon={ServerCog} label="Container status" value={environment.status} />
+        <Info icon={TerminalSquare} label="Container" value={environment.container_name ?? "external"} />
+        <Info icon={HardDrive} label="Docker volume" value={environment.volume_name ?? "external"} />
+        <Info icon={Network} label="Docker network" value={environment.managed ? "relaydb-network" : "external"} />
         <Info icon={TerminalSquare} label="Username" value={environment.username} />
       </div>
 
@@ -41,7 +45,7 @@ export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveE
           Stable endpoint routing
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
-          <FlowNode icon={TerminalSquare} title="Developer App" detail="DATABASE_URL=postgres://localhost:5432/app" />
+          <FlowNode icon={TerminalSquare} title="Developer App" detail="DATABASE_URL=postgres://postgres:postgres@localhost:5432/app" />
           <Arrow />
           <FlowNode icon={Cable} title="RelayDB Endpoint" detail="localhost:5432" active={isSwitching} />
           <Arrow />
@@ -52,14 +56,14 @@ export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveE
       <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
         <div className="text-sm font-medium text-white">Connection contract</div>
         <div className="mt-3 rounded-lg border border-slate-800 bg-slate-900/80 p-3 font-mono text-xs text-cyan-100">
-          postgresql://{environment.username}:*****@localhost:5432/{environment.database}
+          postgresql://postgres:postgres@localhost:5432/app
         </div>
       </div>
     </section>
   );
 }
 
-function Info({ icon: Icon, label, value }: { icon: typeof Database; label: string; value: string }) {
+function Info({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
       <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -71,7 +75,7 @@ function Info({ icon: Icon, label, value }: { icon: typeof Database; label: stri
   );
 }
 
-function FlowNode({ icon: Icon, title, detail, active, selected }: { icon: typeof Database; title: string; detail: string; active?: boolean; selected?: boolean }) {
+function FlowNode({ icon: Icon, title, detail, active, selected }: { icon: LucideIcon; title: string; detail: string; active?: boolean; selected?: boolean }) {
   return (
     <div className={`rounded-xl border p-4 ${selected ? "border-cyan-300/40 bg-cyan-300/10" : "border-slate-800 bg-slate-900/70"} ${active ? "animate-pulse" : ""}`}>
       <div className="flex items-center gap-2">

@@ -6,6 +6,15 @@ export interface PostgresEnvironment {
   database: string;
   username: string;
   password: string;
+  container_name?: string | null;
+  volume_name?: string | null;
+  status: string;
+  created_at?: string | null;
+  managed: boolean;
+}
+
+export interface CreateEnvironmentPayload {
+  name: string;
 }
 
 export interface EnvironmentsResponse {

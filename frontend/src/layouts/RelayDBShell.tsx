@@ -1,4 +1,5 @@
-import { Cable, Database, Search, ServerCog } from "lucide-react";
+import { Cable, Database, Plus, Search, ServerCog, X } from "lucide-react";
+import { FormEvent, useState } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { LoadingState } from "../components/LoadingState";
 import { useEnvironmentPlatform } from "../hooks/useEnvironmentPlatform";
@@ -6,7 +7,34 @@ import { ActiveEnvironmentView } from "../modules/environments/ActiveEnvironment
 import { EnvironmentList } from "../modules/environments/EnvironmentList";
 
 export function RelayDBShell() {
-  const { environments, active, selectedEnvironmentId, isLoading, isSwitching, error, mountEnvironment } = useEnvironmentPlatform();
+  const {
+    environments,
+    active,
+    selectedEnvironmentId,
+    isLoading,
+    isSwitching,
+    isProvisioning,
+    actingEnvironmentId,
+    error,
+    mountEnvironment,
+    provisionEnvironment,
+    startManagedEnvironment,
+    stopManagedEnvironment,
+    deleteManagedEnvironment,
+  } = useEnvironmentPlatform();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [environmentName, setEnvironmentName] = useState("");
+
+  async function submitEnvironment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = environmentName.trim();
+    if (!name) {
+      return;
+    }
+    await provisionEnvironment(name);
+    setEnvironmentName("");
+    setIsCreateOpen(false);
+  }
 
   return (
     <div className="flex min-h-screen flex-col text-slate-100">
@@ -42,6 +70,13 @@ export function RelayDBShell() {
           <Cable className="h-3.5 w-3.5" />
           localhost:5432
         </div>
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="inline-flex h-9 items-center gap-2 rounded-lg border border-cyan-300/30 bg-cyan-300/10 px-3 text-sm font-medium text-cyan-100 transition hover:border-cyan-300/60 hover:bg-cyan-300/15"
+        >
+          <Plus className="h-4 w-4" />
+          Create
+        </button>
       </header>
 
       <main className="grid flex-1 grid-cols-1 gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
@@ -50,11 +85,11 @@ export function RelayDBShell() {
             <div>
               <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-cyan-200">
                 <ServerCog className="h-4 w-4" />
-                TCP Routing MVP
+                Docker Provisioning
               </div>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">One local database URL. One active PostgreSQL target.</h1>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">Isolated PostgreSQL environments behind one stable endpoint.</h1>
               <p className="mt-2 text-sm text-slate-400">
-                Your app connects to <span className="font-mono text-cyan-100">localhost:5432</span>. RelayDB forwards new TCP connections to the selected external PostgreSQL instance.
+                RelayDB creates Docker volumes and PostgreSQL containers, then routes <span className="font-mono text-cyan-100">localhost:5432</span> to the active environment.
               </p>
             </div>
             <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-4 py-3">
@@ -78,9 +113,67 @@ export function RelayDBShell() {
           </section>
         ) : null}
 
-        <EnvironmentList environments={environments} activeEnvironmentId={active?.environment?.id ?? null} selectedEnvironmentId={selectedEnvironmentId} isSwitching={isSwitching} onSwitch={mountEnvironment} />
+        <EnvironmentList
+          environments={environments}
+          activeEnvironmentId={active?.environment?.id ?? null}
+          selectedEnvironmentId={selectedEnvironmentId}
+          isSwitching={isSwitching}
+          actingEnvironmentId={actingEnvironmentId}
+          onSwitch={mountEnvironment}
+          onStart={startManagedEnvironment}
+          onStop={stopManagedEnvironment}
+          onDelete={deleteManagedEnvironment}
+        />
         <ActiveEnvironmentView active={active} isSwitching={isSwitching} />
       </main>
+
+      {isCreateOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur">
+          <form onSubmit={submitEnvironment} className="w-full max-w-lg rounded-xl border border-slate-800 bg-graphite-900 p-5 shadow-glow">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-cyan-200">Provision PostgreSQL</div>
+                <h2 className="mt-2 text-xl font-semibold text-white">Create isolated environment</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-400">RelayDB will create a Docker volume, a PostgreSQL 16 container, and attach it to relaydb-network.</p>
+              </div>
+              <button type="button" onClick={() => setIsCreateOpen(false)} className="rounded-lg border border-slate-700 p-2 text-slate-400 transition hover:text-white">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <label className="mt-5 block">
+              <span className="text-sm font-medium text-slate-300">Environment name</span>
+              <input
+                autoFocus
+                value={environmentName}
+                onChange={(event) => setEnvironmentName(event.target.value)}
+                placeholder="Pedro Debug DB"
+                className="mt-2 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-white outline-none ring-cyan-300/30 transition placeholder:text-slate-600 focus:border-cyan-300/50 focus:ring-4"
+              />
+            </label>
+
+            <div className="mt-4 grid gap-2 text-xs text-slate-400 sm:grid-cols-3">
+              <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">Dedicated container</div>
+              <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">Isolated volume</div>
+              <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">Internal network only</div>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" onClick={() => setIsCreateOpen(false)} className="h-10 rounded-lg border border-slate-700 px-4 text-sm text-slate-300 transition hover:text-white">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isProvisioning || !environmentName.trim()}
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-cyan-300/30 bg-cyan-300/10 px-4 text-sm font-medium text-cyan-100 transition hover:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Plus className="h-4 w-4" />
+                {isProvisioning ? "Provisioning" : "Create environment"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
     </div>
   );
 }

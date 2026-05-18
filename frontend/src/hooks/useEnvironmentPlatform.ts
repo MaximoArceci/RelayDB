@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { getActiveEnvironment, getEnvironments, switchEnvironment } from "../api/environments";
+import { createEnvironment, deleteEnvironment, getActiveEnvironment, getEnvironments, startEnvironment, stopEnvironment, switchEnvironment } from "../api/environments";
 import { useEnvironmentStore } from "../stores/environmentStore";
 
 export function useEnvironmentPlatform() {
@@ -64,5 +64,68 @@ export function useEnvironmentPlatform() {
     }
   }
 
-  return { ...state, mountEnvironment };
+  async function refreshEnvironments() {
+    const [environments, active] = await Promise.all([getEnvironments(), getActiveEnvironment()]);
+    setState({
+      environments: environments.environments,
+      active,
+      selectedEnvironmentId: environments.active_environment_id,
+      error: null,
+    });
+  }
+
+  async function provisionEnvironment(name: string) {
+    setState({ isProvisioning: true, error: null });
+    try {
+      const environment = await createEnvironment({ name });
+      setState({
+        environments: [...state.environments, environment],
+        active: state.active?.environment ? state.active : { environment, stable_endpoint: "localhost:5432" },
+        selectedEnvironmentId: state.selectedEnvironmentId ?? environment.id,
+        isProvisioning: false,
+        error: null,
+      });
+      await refreshEnvironments();
+    } catch (error) {
+      setState({
+        isProvisioning: false,
+        error: error instanceof Error ? error.message : "Unable to provision environment",
+      });
+    }
+  }
+
+  async function startManagedEnvironment(environmentId: string) {
+    setState({ actingEnvironmentId: environmentId, error: null });
+    try {
+      await startEnvironment(environmentId);
+      await refreshEnvironments();
+      setState({ actingEnvironmentId: null });
+    } catch (error) {
+      setState({ actingEnvironmentId: null, error: error instanceof Error ? error.message : "Unable to start environment" });
+    }
+  }
+
+  async function stopManagedEnvironment(environmentId: string) {
+    setState({ actingEnvironmentId: environmentId, error: null });
+    try {
+      await stopEnvironment(environmentId);
+      await refreshEnvironments();
+      setState({ actingEnvironmentId: null });
+    } catch (error) {
+      setState({ actingEnvironmentId: null, error: error instanceof Error ? error.message : "Unable to stop environment" });
+    }
+  }
+
+  async function deleteManagedEnvironment(environmentId: string) {
+    setState({ actingEnvironmentId: environmentId, error: null });
+    try {
+      await deleteEnvironment(environmentId, true);
+      await refreshEnvironments();
+      setState({ actingEnvironmentId: null });
+    } catch (error) {
+      setState({ actingEnvironmentId: null, error: error instanceof Error ? error.message : "Unable to delete environment" });
+    }
+  }
+
+  return { ...state, mountEnvironment, provisionEnvironment, startManagedEnvironment, stopManagedEnvironment, deleteManagedEnvironment };
 }
