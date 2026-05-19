@@ -37,10 +37,12 @@ services:
       context: .
       dockerfile: docker/router.Dockerfile
     ports:
-      - "${RELAYDB_ROUTER_PUBLIC_PORT:-5432}:5432"
+      - "${RELAYDB_ROUTER_PORT_RANGE_A:-15432-15464}:15432-15464"
+      - "${RELAYDB_ROUTER_PORT_RANGE_B:-25432-25464}:25432-25464"
+      - "${RELAYDB_ROUTER_PORT_RANGE_C:-35432-35464}:35432-35464"
     environment:
       RELAYDB_STATE_PATH: /relaydb-state/environments.json
-      RELAYDB_ROUTER_PORT: 5432
+      RELAYDB_ROUTER_HOST: 0.0.0.0
     volumes:
       - relaydb_state:/relaydb-state
     depends_on:

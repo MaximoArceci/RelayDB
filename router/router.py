@@ -7,44 +7,47 @@ from typing import Any
 
 STATE_PATH = Path(os.getenv("RELAYDB_STATE_PATH", "/relaydb-state/environments.json"))
 LISTEN_HOST = os.getenv("RELAYDB_ROUTER_HOST", "0.0.0.0")
-LISTEN_PORT = int(os.getenv("RELAYDB_ROUTER_PORT", "5432"))
 STATE_POLL_INTERVAL_SECONDS = float(os.getenv("RELAYDB_STATE_POLL_INTERVAL_SECONDS", "0.5"))
 
 
-@dataclass(eq=False)
-class ActiveConnection:
-    client_writer: asyncio.StreamWriter
-    target_writer: asyncio.StreamWriter
+@dataclass(frozen=True)
+class ListenerConfig:
+    connection_id: str
+    stable_port: int
 
 
-active_connections: set[ActiveConnection] = set()
-active_connections_lock = asyncio.Lock()
+@dataclass
+class ListenerRuntime:
+    config: ListenerConfig
+    server: asyncio.AbstractServer
+
+
+listeners: dict[int, ListenerRuntime] = {}
 
 
 def load_state() -> dict[str, Any]:
     with STATE_PATH.open("r", encoding="utf-8") as file:
-        return json.load(file)
+        state = json.load(file)
+    state.setdefault("environments", [])
+    state.setdefault("connections", [])
+    return state
 
 
-def load_active_target() -> dict[str, Any]:
-    """Read the current active environment for a new incoming connection.
-
-    RelayDB intentionally does not parse PostgreSQL protocol in this MVP.
-    It opens a raw TCP connection to the selected target and pipes bytes in
-    both directions until either side closes.
-    """
-
-    state = load_state()
-    active_id = state.get("active_environment_id")
+def find_environment(state: dict[str, Any], environment_id: str) -> dict[str, Any]:
     for environment in state.get("environments", []):
-        if environment["id"] == active_id:
+        if environment["id"] == environment_id:
             return environment
+    raise RuntimeError(f"Target environment {environment_id} is not registered")
 
-    raise RuntimeError("No active PostgreSQL environment configured")
 
-
-def load_active_environment_id() -> str | None:
-    return load_state().get("active_environment_id")
+def load_connection_target(connection_id: str) -> dict[str, Any]:
+    state = load_state()
+    for connection in state.get("connections", []):
+        if connection["id"] == connection_id:
+            if connection.get("status") != "active":
+                raise RuntimeError(f"Connection {connection_id} is not active")
+            return find_environment(state, connection["target_environment_id"])
+    raise RuntimeError(f"Connection {connection_id} is not registered")
 
 
 async def close_writer(writer: asyncio.StreamWriter) -> None:
@@ -53,58 +56,6 @@ async def close_writer(writer: asyncio.StreamWriter) -> None:
         await writer.wait_closed()
     except Exception:
         pass
-
-
-async def register_connection(connection: ActiveConnection) -> None:
-    async with active_connections_lock:
-        active_connections.add(connection)
-
-
-async def unregister_connection(connection: ActiveConnection) -> None:
-    async with active_connections_lock:
-        active_connections.discard(connection)
-
-
-async def close_active_connections(reason: str) -> None:
-    async with active_connections_lock:
-        connections = list(active_connections)
-        active_connections.clear()
-
-    if not connections:
-        return
-
-    print(f"Closing {len(connections)} active connection(s): {reason}", flush=True)
-    await asyncio.gather(
-        *[
-            close_writer(writer)
-            for connection in connections
-            for writer in (connection.client_writer, connection.target_writer)
-        ],
-        return_exceptions=True,
-    )
-
-
-async def watch_active_environment() -> None:
-    last_active_id: str | None = None
-
-    while True:
-        try:
-            active_id = load_active_environment_id()
-        except Exception as exc:
-            print(f"Unable to read active environment state: {exc}", flush=True)
-            await asyncio.sleep(STATE_POLL_INTERVAL_SECONDS)
-            continue
-
-        if last_active_id is None:
-            last_active_id = active_id
-        elif active_id != last_active_id:
-            previous_active_id = last_active_id
-            last_active_id = active_id
-            await close_active_connections(
-                f"active environment changed from {previous_active_id} to {active_id}"
-            )
-
-        await asyncio.sleep(STATE_POLL_INTERVAL_SECONDS)
 
 
 async def pipe(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
@@ -116,20 +67,21 @@ async def pipe(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> No
             writer.write(chunk)
             await writer.drain()
     finally:
-        writer.close()
-        await writer.wait_closed()
+        await close_writer(writer)
 
 
-async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyncio.StreamWriter) -> None:
+async def handle_client(
+    connection_id: str,
+    client_reader: asyncio.StreamReader,
+    client_writer: asyncio.StreamWriter,
+) -> None:
     try:
-        target = load_active_target()
+        target = load_connection_target(connection_id)
         target_reader, target_writer = await asyncio.open_connection(target["host"], int(target["port"]))
-    except Exception:
+    except Exception as exc:
+        print(f"Unable to route connection {connection_id}: {exc}", flush=True)
         await close_writer(client_writer)
         return
-
-    connection = ActiveConnection(client_writer=client_writer, target_writer=target_writer)
-    await register_connection(connection)
 
     try:
         await asyncio.gather(
@@ -138,22 +90,75 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
             return_exceptions=True,
         )
     finally:
-        await unregister_connection(connection)
+        await close_writer(client_writer)
+        await close_writer(target_writer)
+
+
+async def start_listener(config: ListenerConfig) -> None:
+    server = await asyncio.start_server(
+        lambda reader, writer: handle_client(config.connection_id, reader, writer),
+        LISTEN_HOST,
+        config.stable_port,
+    )
+    listeners[config.stable_port] = ListenerRuntime(config=config, server=server)
+    sockets = ", ".join(str(sock.getsockname()) for sock in server.sockets or [])
+    print(f"RelayDB connection {config.connection_id} listening on {sockets}", flush=True)
+
+
+async def stop_listener(port: int, reason: str) -> None:
+    runtime = listeners.pop(port, None)
+    if runtime is None:
+        return
+
+    print(f"Stopping RelayDB listener on {port}: {reason}", flush=True)
+    runtime.server.close()
+    await runtime.server.wait_closed()
+
+
+def desired_listener_configs(state: dict[str, Any]) -> dict[int, ListenerConfig]:
+    configs: dict[int, ListenerConfig] = {}
+    for connection in state.get("connections", []):
+        if connection.get("status") != "active":
+            continue
+        configs[int(connection["stable_port"])] = ListenerConfig(
+            connection_id=connection["id"],
+            stable_port=int(connection["stable_port"]),
+        )
+    return configs
+
+
+async def reconcile_listeners() -> None:
+    try:
+        desired = desired_listener_configs(load_state())
+    except Exception as exc:
+        print(f"Unable to read RelayDB routing state: {exc}", flush=True)
+        return
+
+    for port, runtime in list(listeners.items()):
+        next_config = desired.get(port)
+        if next_config is None:
+            await stop_listener(port, "connection slot removed or inactive")
+        elif next_config != runtime.config:
+            await stop_listener(port, "connection slot changed")
+
+    for port, config in desired.items():
+        if port not in listeners:
+            try:
+                await start_listener(config)
+            except Exception as exc:
+                print(f"Unable to start listener for {config.connection_id} on {port}: {exc}", flush=True)
 
 
 async def main() -> None:
-    server = await asyncio.start_server(handle_client, LISTEN_HOST, LISTEN_PORT)
-    sockets = ", ".join(str(sock.getsockname()) for sock in server.sockets or [])
-    print(f"RelayDB TCP router listening on {sockets}", flush=True)
-
-    watcher_task = asyncio.create_task(watch_active_environment())
-    async with server:
-        try:
-            await server.serve_forever()
-        finally:
-            watcher_task.cancel()
-            await close_active_connections("router shutting down")
+    print("RelayDB multi-port TCP router starting", flush=True)
+    while True:
+        await reconcile_listeners()
+        await asyncio.sleep(STATE_POLL_INTERVAL_SECONDS)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    finally:
+        for runtime in listeners.values():
+            runtime.server.close()

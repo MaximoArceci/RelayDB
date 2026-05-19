@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createConnection, deleteConnection, getConnections, switchConnection } from "../api/connections";
 import { createEnvironment, deleteEnvironment, getActiveEnvironment, getEnvironments, startEnvironment, stopEnvironment, switchEnvironment } from "../api/environments";
 import { createSnapshot, deleteSnapshot, getSnapshots, restoreSnapshot } from "../api/snapshots";
 import { useEnvironmentStore } from "../stores/environmentStore";
@@ -11,10 +12,11 @@ export function useEnvironmentPlatform() {
     const controller = new AbortController();
     setState({ isLoading: true, error: null });
 
-    Promise.all([getEnvironments(controller.signal), getActiveEnvironment(controller.signal), getSnapshots(controller.signal)])
-      .then(([environments, active, snapshots]) => {
+    Promise.all([getEnvironments(controller.signal), getActiveEnvironment(controller.signal), getSnapshots(controller.signal), getConnections(controller.signal)])
+      .then(([environments, active, snapshots, connections]) => {
         setState({
           environments: environments.environments,
+          connections: connections.connections,
           snapshots: snapshots.snapshots,
           active,
           selectedEnvironmentId: environments.active_environment_id,
@@ -67,9 +69,10 @@ export function useEnvironmentPlatform() {
   }
 
   async function refreshEnvironments() {
-    const [environments, active, snapshots] = await Promise.all([getEnvironments(), getActiveEnvironment(), getSnapshots()]);
+    const [environments, active, snapshots, connections] = await Promise.all([getEnvironments(), getActiveEnvironment(), getSnapshots(), getConnections()]);
     setState({
       environments: environments.environments,
+      connections: connections.connections,
       snapshots: snapshots.snapshots,
       active,
       selectedEnvironmentId: environments.active_environment_id,
@@ -163,6 +166,61 @@ export function useEnvironmentPlatform() {
     }
   }
 
+  async function createStableConnection(name: string, owner: string, stablePort: number, targetEnvironmentId: string) {
+    setState({ isCreatingConnection: true, error: null });
+    try {
+      const connection = await createConnection({ name, owner, stable_port: stablePort, target_environment_id: targetEnvironmentId });
+      setState({ connections: [...state.connections, connection], selectedEnvironmentId: targetEnvironmentId });
+      await refreshEnvironments();
+      setState({ isCreatingConnection: false });
+      return connection;
+    } catch (error) {
+      setState({ isCreatingConnection: false, error: error instanceof Error ? error.message : "Unable to create stable connection" });
+      throw error;
+    }
+  }
+
+  async function switchStableConnection(connectionId: string, environmentId: string) {
+    const previousConnections = state.connections;
+    const nextEnvironment = state.environments.find((environment) => environment.id === environmentId);
+
+    setState({ actingConnectionId: connectionId, error: null });
+    try {
+      const connection = await switchConnection(connectionId, environmentId);
+      setState({
+        connections: state.connections.map((item) => (item.id === connection.id ? connection : item)),
+        selectedEnvironmentId: environmentId,
+        active: nextEnvironment
+          ? {
+              environment: nextEnvironment,
+              stable_endpoint: `localhost:${connection.stable_port}`,
+            }
+          : state.active,
+      });
+      await refreshEnvironments();
+      setState({ actingConnectionId: null });
+      return connection;
+    } catch (error) {
+      setState({
+        connections: previousConnections,
+        actingConnectionId: null,
+        error: error instanceof Error ? error.message : "Unable to switch stable connection",
+      });
+      throw error;
+    }
+  }
+
+  async function deleteStableConnection(connectionId: string) {
+    setState({ actingConnectionId: connectionId, error: null });
+    try {
+      await deleteConnection(connectionId);
+      await refreshEnvironments();
+      setState({ actingConnectionId: null });
+    } catch (error) {
+      setState({ actingConnectionId: null, error: error instanceof Error ? error.message : "Unable to delete stable connection" });
+    }
+  }
+
   return {
     ...state,
     mountEnvironment,
@@ -173,5 +231,8 @@ export function useEnvironmentPlatform() {
     snapshotEnvironment,
     restoreEnvironmentSnapshot,
     deleteEnvironmentSnapshot,
+    createStableConnection,
+    switchStableConnection,
+    deleteStableConnection,
   };
 }

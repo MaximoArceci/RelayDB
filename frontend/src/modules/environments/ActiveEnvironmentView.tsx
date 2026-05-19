@@ -36,19 +36,18 @@ export function ActiveEnvironmentView({
     <section className="min-h-[520px] rounded-xl border border-slate-800/80 bg-graphite-900/75 p-5 shadow-glow backdrop-blur">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Active Route</div>
+          <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Selected Environment</div>
           <h2 className="mt-2 text-2xl font-semibold text-white">{environment.name}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-            Your application keeps the same database URL. RelayDB changes the TCP target for new PostgreSQL connections.
+            Inspect this PostgreSQL target, run SQL, and manage snapshots. Stable connection strings are managed in the routes panel above.
           </p>
         </div>
         <div className={`rounded-full border px-3 py-1.5 text-xs ${isSwitching ? "border-signal-yellow/30 bg-signal-yellow/10 text-signal-yellow" : "border-signal-green/30 bg-signal-green/10 text-signal-green"}`}>
-          {isSwitching ? "switching target" : "routing active"}
+          {isSwitching ? "switching selection" : "selected"}
         </div>
       </div>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Info icon={Cable} label="Stable endpoint" value={active.stable_endpoint} />
         <Info icon={Database} label="Target database" value={environment.database} />
         <Info icon={Network} label="Target host" value={`${environment.host}:${environment.port}`} />
         <Info icon={ServerCog} label="Container status" value={environment.status} />
@@ -61,21 +60,14 @@ export function ActiveEnvironmentView({
       <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
         <div className="flex items-center gap-2 text-sm font-medium text-white">
           <ServerCog className="h-4 w-4 text-cyan-200" />
-          Stable endpoint routing
+          Environment access model
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
-          <FlowNode icon={TerminalSquare} title="Developer App" detail="DATABASE_URL=postgres://postgres:postgres@localhost:5432/app" />
+          <FlowNode icon={TerminalSquare} title="Developer App" detail="Use the stable route assigned to your workflow" />
           <Arrow />
-          <FlowNode icon={Cable} title="RelayDB Endpoint" detail="localhost:5432" active={isSwitching} />
+          <FlowNode icon={Cable} title="Stable Route" detail="localhost:15432, localhost:25432, or another assigned port" active={isSwitching} />
           <Arrow />
           <FlowNode icon={Database} title="Selected PostgreSQL" detail={`${environment.host}:${environment.port}/${environment.database}`} selected />
-        </div>
-      </div>
-
-      <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-        <div className="text-sm font-medium text-white">Connection contract</div>
-        <div className="mt-3 rounded-lg border border-slate-800 bg-slate-900/80 p-3 font-mono text-xs text-cyan-100">
-          postgresql://postgres:postgres@localhost:5432/app
         </div>
       </div>
 

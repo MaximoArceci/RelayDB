@@ -1,3 +1,4 @@
+from app.schemas.connections import ConnectionSlot, ConnectionSlotCreate, ConnectionSlotListResponse
 from app.schemas.environments import (
     ActiveEnvironmentResponse,
     Environment,
@@ -11,6 +12,9 @@ from app.schemas.environments import (
 from app.schemas.snapshots import Snapshot, SnapshotCreate, SnapshotListResponse
 
 __all__ = [
+    "ConnectionSlot",
+    "ConnectionSlotCreate",
+    "ConnectionSlotListResponse",
     "Environment",
     "EnvironmentCreate",
     "EnvironmentProvisionRequest",
