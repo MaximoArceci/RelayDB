@@ -10,6 +10,13 @@ class ConnectionSlotCreate(BaseModel):
     target_environment_id: str = Field(min_length=1)
 
 
+class ConnectionSlotUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1)
+    owner: str | None = Field(default=None, min_length=1)
+    stable_port: int | None = Field(default=None, ge=1, le=65535)
+    target_environment_id: str | None = Field(default=None, min_length=1)
+
+
 class ConnectionSlot(ConnectionSlotCreate):
     id: str
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())

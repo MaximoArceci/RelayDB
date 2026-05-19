@@ -1,4 +1,4 @@
-import { Cable, Database, PlugZap, Plus, ServerCog, X } from "lucide-react";
+import { Cable, Database, Pencil, PlugZap, Plus, ServerCog, Trash2, X } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { LoadingState } from "../components/LoadingState";
@@ -33,9 +33,12 @@ export function RelayDBShell() {
     deleteEnvironmentSnapshot,
     createStableConnection,
     switchStableConnection,
+    updateStableConnection,
+    deleteStableConnection,
   } = useEnvironmentPlatform();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isConnectionOpen, setIsConnectionOpen] = useState(false);
+  const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
   const [selectedConnectionId, setSelectedConnectionId] = useState("");
   const [environmentName, setEnvironmentName] = useState("");
   const [connectionName, setConnectionName] = useState("");
@@ -46,6 +49,7 @@ export function RelayDBShell() {
   const selectedConnectionTargetId = selectedConnection?.target_environment_id ?? "";
   const selectedConnectionTarget = environments.find((environment) => environment.id === selectedConnectionTargetId) ?? null;
   const selectedConnectionString = selectedConnection ? `postgresql://postgres:postgres@localhost:${selectedConnection.stable_port}/${selectedConnectionTarget?.database ?? "app"}` : null;
+  const editingConnection = editingConnectionId ? connections.find((connection) => connection.id === editingConnectionId) ?? null : null;
 
   useEffect(() => {
     if (connections.length === 0) {
@@ -77,7 +81,9 @@ export function RelayDBShell() {
     if (!name || !owner || !targetId || !Number.isInteger(stablePort)) {
       return;
     }
-    const connection = await createStableConnection(name, owner, stablePort, targetId);
+    const connection = editingConnection
+      ? await updateStableConnection(editingConnection.id, name, owner, stablePort, targetId)
+      : await createStableConnection(name, owner, stablePort, targetId);
     if (connection) {
       setSelectedConnectionId(connection.id);
       await mountEnvironment(connection.target_environment_id);
@@ -86,6 +92,7 @@ export function RelayDBShell() {
     setConnectionOwner("");
     setConnectionPort(String(stablePort + 10000));
     setConnectionTargetId("");
+    setEditingConnectionId(null);
     setIsConnectionOpen(false);
   }
 
@@ -94,7 +101,39 @@ export function RelayDBShell() {
     const suggestedPort = [15432, 25432, 35432].find((port) => !usedPorts.has(port)) ?? Math.min(65535, Math.max(15431, ...connections.map((connection) => connection.stable_port)) + 1);
     setConnectionPort(String(suggestedPort));
     setConnectionTargetId(selectedConnectionTargetId || selectedEnvironmentId || environments[0]?.id || "");
+    setEditingConnectionId(null);
     setIsConnectionOpen(true);
+  }
+
+  function openEditConnectionModal() {
+    if (!selectedConnection) {
+      return;
+    }
+    setConnectionName(selectedConnection.name);
+    setConnectionOwner(selectedConnection.owner);
+    setConnectionPort(String(selectedConnection.stable_port));
+    setConnectionTargetId(selectedConnection.target_environment_id);
+    setEditingConnectionId(selectedConnection.id);
+    setIsConnectionOpen(true);
+  }
+
+  async function deleteSelectedConnection() {
+    if (!selectedConnection) {
+      return;
+    }
+    if (!window.confirm(`Delete stable connection ${selectedConnection.name}?`)) {
+      return;
+    }
+    try {
+      const deleted = await deleteStableConnection(selectedConnection.id);
+      const nextConnection = connections.find((connection) => connection.id !== deleted?.id) ?? null;
+      setSelectedConnectionId(nextConnection?.id ?? "");
+      if (nextConnection) {
+        await mountEnvironment(nextConnection.target_environment_id);
+      }
+    } catch {
+      // The hook restores server-backed state and exposes the error banner.
+    }
   }
 
   function selectConnection(value: string) {
@@ -191,6 +230,7 @@ export function RelayDBShell() {
               </div>
               <div className="mt-2 truncate text-xl font-semibold text-white">{selectedConnection?.name ?? "No stable connection selected"}</div>
               <div className="mt-2 truncate font-mono text-xs text-cyan-100">{selectedConnectionString ?? "Create a route to get a stable PostgreSQL URL"}</div>
+              {selectedConnection ? <div className="mt-2 text-xs text-slate-500">Owner: {selectedConnection.owner}</div> : null}
             </div>
             <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-4 py-3">
               <div className="text-xs text-slate-500">Routes to</div>
@@ -200,8 +240,32 @@ export function RelayDBShell() {
               </div>
             </div>
             <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-4 py-3">
-              <div className="text-xs text-slate-500">Switch behavior</div>
-              <div className="mt-1 text-sm font-semibold text-white">{actingConnectionId === selectedConnection?.id ? "Updating route" : "Ready"}</div>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs text-slate-500">Switch behavior</div>
+                  <div className="mt-1 text-sm font-semibold text-white">{actingConnectionId === selectedConnection?.id ? "Updating route" : "Ready"}</div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={!selectedConnection || actingConnectionId === selectedConnection?.id}
+                    onClick={openEditConnectionModal}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-700 px-2.5 text-xs text-slate-300 transition hover:border-cyan-300/40 hover:bg-cyan-300/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!selectedConnection || actingConnectionId === selectedConnection?.id}
+                    onClick={deleteSelectedConnection}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-signal-red/30 px-2.5 text-xs text-signal-red transition hover:bg-signal-red/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete
+                  </button>
+                </div>
+              </div>
               <div className="mt-2 text-xs leading-5 text-slate-400">
                 Target changes are saved on this connection. Existing database client sessions must reconnect.
               </div>
@@ -300,10 +364,21 @@ export function RelayDBShell() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-xs uppercase tracking-[0.18em] text-cyan-200">Stable TCP Route</div>
-                <h2 className="mt-2 text-xl font-semibold text-white">Dedicated developer endpoint</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-400">Assign one local TCP port to one owner or workflow. The target can change later without changing the connection string.</p>
+                <h2 className="mt-2 text-xl font-semibold text-white">{editingConnection ? "Edit stable connection" : "Dedicated developer endpoint"}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  {editingConnection
+                    ? "Update the owner, stable port, or default target for this route."
+                    : "Assign one local TCP port to one owner or workflow. The target can change later without changing the connection string."}
+                </p>
               </div>
-              <button type="button" onClick={() => setIsConnectionOpen(false)} className="rounded-lg border border-slate-700 p-2 text-slate-400 transition hover:text-white">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConnectionOpen(false);
+                  setEditingConnectionId(null);
+                }}
+                className="rounded-lg border border-slate-700 p-2 text-slate-400 transition hover:text-white"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -340,7 +415,7 @@ export function RelayDBShell() {
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-medium text-slate-300">Initial target</span>
+                <span className="text-sm font-medium text-slate-300">{editingConnection ? "Default target" : "Initial target"}</span>
                 <select
                   value={connectionTargetId || environments[0]?.id || ""}
                   onChange={(event) => setConnectionTargetId(event.target.value)}
@@ -363,16 +438,23 @@ export function RelayDBShell() {
             </div>
 
             <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => setIsConnectionOpen(false)} className="h-10 rounded-lg border border-slate-700 px-4 text-sm text-slate-300 transition hover:text-white">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConnectionOpen(false);
+                  setEditingConnectionId(null);
+                }}
+                className="h-10 rounded-lg border border-slate-700 px-4 text-sm text-slate-300 transition hover:text-white"
+              >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={isCreatingConnection || !connectionName.trim() || !connectionOwner.trim() || environments.length === 0}
+                disabled={(editingConnection ? actingConnectionId === editingConnection.id : isCreatingConnection) || !connectionName.trim() || !connectionOwner.trim() || environments.length === 0}
                 className="inline-flex h-10 items-center gap-2 rounded-lg border border-signal-green/30 bg-signal-green/10 px-4 text-sm font-medium text-signal-green transition hover:border-signal-green/60 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <PlugZap className="h-4 w-4" />
-                {isCreatingConnection ? "Creating" : "Create route"}
+                {editingConnection ? (actingConnectionId === editingConnection.id ? "Saving" : "Save route") : isCreatingConnection ? "Creating" : "Create route"}
               </button>
             </div>
           </form>

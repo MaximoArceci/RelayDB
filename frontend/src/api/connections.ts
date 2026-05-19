@@ -1,5 +1,5 @@
 import { apiGet } from "./client";
-import type { ConnectionSlot, ConnectionsResponse, CreateConnectionPayload } from "../types/connections";
+import type { ConnectionSlot, ConnectionsResponse, CreateConnectionPayload, UpdateConnectionPayload } from "../types/connections";
 
 export function getConnections(signal?: AbortSignal) {
   return apiGet<ConnectionsResponse>("/api/v1/connections", signal);
@@ -29,6 +29,21 @@ export async function switchConnection(connectionId: string, environmentId: stri
   if (!response.ok) {
     const detail = await response.json().catch(() => null);
     throw new Error(detail?.detail ?? `Connection switch failed with ${response.status}`);
+  }
+
+  return response.json() as Promise<ConnectionSlot>;
+}
+
+export async function updateConnection(connectionId: string, payload: UpdateConnectionPayload) {
+  const response = await fetch(`/api/v1/connections/${connectionId}`, {
+    method: "PATCH",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const detail = await response.json().catch(() => null);
+    throw new Error(detail?.detail ?? `Connection update failed with ${response.status}`);
   }
 
   return response.json() as Promise<ConnectionSlot>;

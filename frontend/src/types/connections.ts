@@ -15,6 +15,8 @@ export interface CreateConnectionPayload {
   target_environment_id: string;
 }
 
+export type UpdateConnectionPayload = Partial<CreateConnectionPayload>;
+
 export interface ConnectionsResponse {
   connections: ConnectionSlot[];
 }

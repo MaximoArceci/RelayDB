@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import HTTPException
 
 from app.core.settings import settings
-from app.schemas.connections import ConnectionSlot, ConnectionSlotCreate, ConnectionSlotListResponse
+from app.schemas.connections import ConnectionSlot, ConnectionSlotCreate, ConnectionSlotListResponse, ConnectionSlotUpdate
 from app.services.environment_registry import EnvironmentRegistry
 
 
@@ -51,6 +51,32 @@ class ConnectionService:
         for index, item in enumerate(state.get("connections", [])):
             if item["id"] == connection_id:
                 updated = {**item, "target_environment_id": environment_id, "status": "active"}
+                state["connections"][index] = updated
+                self.registry.write_state(state)
+                return ConnectionSlot(**updated)
+
+        raise HTTPException(status_code=404, detail="Connection not found")
+
+    def update_connection(self, connection_id: str, payload: ConnectionSlotUpdate) -> ConnectionSlot:
+        state = self.registry.read_state()
+        changes = payload.model_dump(exclude_unset=True)
+
+        if not changes:
+            return self.find_connection(state, connection_id)
+
+        target_environment_id = changes.get("target_environment_id")
+        if target_environment_id is not None:
+            self.registry.find_environment(state, target_environment_id)
+
+        stable_port = changes.get("stable_port")
+        if stable_port is not None and any(
+            item["id"] != connection_id and item["stable_port"] == stable_port for item in state.get("connections", [])
+        ):
+            raise HTTPException(status_code=409, detail="Stable port is already assigned to a connection")
+
+        for index, item in enumerate(state.get("connections", [])):
+            if item["id"] == connection_id:
+                updated = {**item, **changes}
                 state["connections"][index] = updated
                 self.registry.write_state(state)
                 return ConnectionSlot(**updated)

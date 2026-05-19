@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from app.schemas.connections import ConnectionSlot, ConnectionSlotCreate, ConnectionSlotListResponse
+from app.schemas.connections import ConnectionSlot, ConnectionSlotCreate, ConnectionSlotListResponse, ConnectionSlotUpdate
 from app.services.connection_service import ConnectionService
 
 router = APIRouter(prefix="/connections", tags=["connections"])
@@ -38,6 +38,15 @@ def switch_connection(
     service: ConnectionService = Depends(get_connection_service),
 ) -> ConnectionSlot:
     return service.switch_connection(connection_id, environment_id)
+
+
+@router.patch("/{connection_id}", response_model=ConnectionSlot)
+def update_connection(
+    connection_id: str,
+    payload: ConnectionSlotUpdate,
+    service: ConnectionService = Depends(get_connection_service),
+) -> ConnectionSlot:
+    return service.update_connection(connection_id, payload)
 
 
 @router.delete("/{connection_id}", response_model=ConnectionSlot)

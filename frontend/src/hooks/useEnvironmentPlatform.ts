@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createConnection, deleteConnection, getConnections, switchConnection } from "../api/connections";
+import { createConnection, deleteConnection, getConnections, switchConnection, updateConnection } from "../api/connections";
 import { createEnvironment, deleteEnvironment, getActiveEnvironment, getEnvironments, startEnvironment, stopEnvironment, switchEnvironment } from "../api/environments";
 import { createSnapshot, deleteSnapshot, getSnapshots, restoreSnapshot } from "../api/snapshots";
 import { useEnvironmentStore } from "../stores/environmentStore";
@@ -210,14 +210,57 @@ export function useEnvironmentPlatform() {
     }
   }
 
-  async function deleteStableConnection(connectionId: string) {
+  async function updateStableConnection(connectionId: string, name: string, owner: string, stablePort: number, targetEnvironmentId: string) {
+    const previousConnections = state.connections;
+    const nextEnvironment = state.environments.find((environment) => environment.id === targetEnvironmentId);
+
     setState({ actingConnectionId: connectionId, error: null });
     try {
-      await deleteConnection(connectionId);
+      const connection = await updateConnection(connectionId, {
+        name,
+        owner,
+        stable_port: stablePort,
+        target_environment_id: targetEnvironmentId,
+      });
+      setState({
+        connections: state.connections.map((item) => (item.id === connection.id ? connection : item)),
+        selectedEnvironmentId: targetEnvironmentId,
+        active: nextEnvironment
+          ? {
+              environment: nextEnvironment,
+              stable_endpoint: `localhost:${connection.stable_port}`,
+            }
+          : state.active,
+      });
       await refreshEnvironments();
       setState({ actingConnectionId: null });
+      return connection;
     } catch (error) {
-      setState({ actingConnectionId: null, error: error instanceof Error ? error.message : "Unable to delete stable connection" });
+      setState({
+        connections: previousConnections,
+        actingConnectionId: null,
+        error: error instanceof Error ? error.message : "Unable to update stable connection",
+      });
+      throw error;
+    }
+  }
+
+  async function deleteStableConnection(connectionId: string) {
+    const previousConnections = state.connections;
+    setState({ actingConnectionId: connectionId, error: null });
+    try {
+      const connection = await deleteConnection(connectionId);
+      setState({ connections: state.connections.filter((item) => item.id !== connection.id) });
+      await refreshEnvironments();
+      setState({ actingConnectionId: null });
+      return connection;
+    } catch (error) {
+      setState({
+        connections: previousConnections,
+        actingConnectionId: null,
+        error: error instanceof Error ? error.message : "Unable to delete stable connection",
+      });
+      throw error;
     }
   }
 
@@ -233,6 +276,7 @@ export function useEnvironmentPlatform() {
     deleteEnvironmentSnapshot,
     createStableConnection,
     switchStableConnection,
+    updateStableConnection,
     deleteStableConnection,
   };
 }
