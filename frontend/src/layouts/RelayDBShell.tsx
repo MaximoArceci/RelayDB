@@ -197,46 +197,21 @@ export function RelayDBShell() {
           </select>
         </div>
 
-        <div className="flex w-full items-center gap-2 sm:w-auto">
-          <div className="hidden text-xs text-slate-500 sm:block">Routes to</div>
-          <select
-            className="h-9 min-w-0 flex-1 rounded-lg border border-slate-800 bg-slate-950/80 px-3 text-sm text-slate-300 outline-none ring-cyan-300/30 transition focus:border-cyan-300/50 focus:ring-4 disabled:cursor-not-allowed disabled:opacity-50 sm:w-56 sm:flex-none"
-            value={selectedConnectionTargetId || selectedEnvironmentId || ""}
-            disabled={!selectedConnection || actingConnectionId === selectedConnection.id}
-            onChange={(event) => selectConnectionTarget(event.target.value)}
-          >
-            {environments.map((environment) => (
-              <option key={environment.id} value={environment.id}>
-                {environment.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="inline-flex h-9 items-center gap-2 rounded-lg border border-cyan-300/30 bg-cyan-300/10 px-3 text-sm font-medium text-cyan-100 transition hover:border-cyan-300/60 hover:bg-cyan-300/15"
-        >
-          <Plus className="h-4 w-4" />
-          New environment
-        </button>
       </header>
 
-      <main className="grid flex-1 grid-cols-1 gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+      <main className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 xl:max-h-[calc(100vh-4rem)] xl:grid-cols-[340px_minmax(0,1fr)]">
         <section className="xl:col-span-2">
-          <div className="grid gap-3 rounded-xl border border-slate-800/80 bg-graphite-900/70 p-4 shadow-glow backdrop-blur lg:grid-cols-[1.4fr_1fr_auto]">
+          <div className="grid gap-2 rounded-xl border border-slate-800/80 bg-graphite-900/70 px-4 py-3 shadow-glow backdrop-blur lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-cyan-200">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-cyan-200">
                 <ServerCog className="h-4 w-4" />
                 Active stable connection
               </div>
-              <div className="mt-2 truncate text-xl font-semibold text-white">{selectedConnection?.name ?? "No stable connection selected"}</div>
-              <div className="mt-2 truncate font-mono text-xs text-cyan-100">{selectedConnectionString ?? "Create a route to get a stable PostgreSQL URL"}</div>
-              {selectedConnection ? <div className="mt-2 text-xs text-slate-500">Owner: {selectedConnection.owner}</div> : null}
-            </div>
-            <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-4 py-3">
-              <div className="text-xs text-slate-500">Routes to</div>
-              <div className="mt-1 truncate text-sm font-semibold text-white">{selectedConnectionTarget?.name ?? "No target"}</div>
+              <div className="mt-1 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                <div className="truncate text-base font-semibold text-white">{selectedConnection?.name ?? "No stable connection selected"}</div>
+                <div className="truncate font-mono text-xs text-cyan-100">{selectedConnectionString ?? "Create a route to get a stable PostgreSQL URL"}</div>
+                {selectedConnection ? <div className="shrink-0 text-xs text-slate-500">Owner: {selectedConnection.owner}</div> : null}
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">
               <button
@@ -283,6 +258,7 @@ export function RelayDBShell() {
           actingEnvironmentId={actingEnvironmentId}
           snapshots={snapshots}
           onSwitch={selectedConnection ? selectConnectionTarget : mountEnvironment}
+          onCreate={() => setIsCreateOpen(true)}
           onStart={startManagedEnvironment}
           onStop={stopManagedEnvironment}
           onDelete={deleteManagedEnvironment}

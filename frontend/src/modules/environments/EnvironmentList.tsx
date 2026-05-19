@@ -1,5 +1,6 @@
-import { Camera, CheckCircle2, Database, Play, Square, Trash2, type LucideIcon } from "lucide-react";
+import { Camera, CheckCircle2, Database, Play, Plus, Square, Trash2, X, type LucideIcon } from "lucide-react";
 import type { MouseEventHandler } from "react";
+import { useState } from "react";
 import type { PostgresEnvironment } from "../../types/environments";
 import type { Snapshot } from "../../types/snapshots";
 
@@ -11,6 +12,7 @@ export function EnvironmentList({
   actingEnvironmentId,
   snapshots,
   onSwitch,
+  onCreate,
   onStart,
   onStop,
   onDelete,
@@ -22,22 +24,57 @@ export function EnvironmentList({
   actingEnvironmentId: string | null;
   snapshots: Snapshot[];
   onSwitch: (environmentId: string) => void;
+  onCreate: () => void;
   onStart: (environmentId: string) => void;
   onStop: (environmentId: string) => void;
   onDelete: (environmentId: string) => void;
 }) {
+  const [query, setQuery] = useState("");
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleEnvironments = normalizedQuery
+    ? environments.filter((environment) =>
+        `${environment.name} ${environment.status} ${environment.managed ? "managed container" : "external target"}`.toLowerCase().includes(normalizedQuery),
+      )
+    : environments;
+
   return (
-    <aside className="flex min-h-[520px] flex-col rounded-xl border border-slate-800/80 bg-graphite-900/75 p-4 shadow-glow backdrop-blur">
+    <aside className="flex min-h-[420px] flex-col overflow-hidden rounded-xl border border-slate-800/80 bg-graphite-900/75 p-4 shadow-glow backdrop-blur xl:sticky xl:top-3 xl:h-[calc(100vh-9.5rem)]">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Provisioned Targets</div>
           <h2 className="mt-1 text-lg font-semibold text-white">PostgreSQL environments</h2>
         </div>
-        <Database className="h-5 w-5 text-cyan-200" />
+        <button
+          type="button"
+          onClick={onCreate}
+          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-cyan-300/30 bg-cyan-300/10 px-2.5 text-xs font-medium text-cyan-100 transition hover:border-cyan-300/60 hover:bg-cyan-300/15"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          New
+        </button>
       </div>
 
-      <div className="nexus-scrollbar mt-4 flex-1 space-y-3 overflow-auto">
-        {environments.map((environment) => {
+      <div className="relative mt-4">
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search environments"
+          className="h-10 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 pr-10 text-sm text-white outline-none ring-cyan-300/30 transition placeholder:text-slate-600 focus:border-cyan-300/50 focus:ring-4"
+        />
+        {query ? (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-white"
+            aria-label="Clear environment search"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        ) : null}
+      </div>
+
+      <div className="nexus-scrollbar mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+        {visibleEnvironments.map((environment) => {
           const isActive = activeEnvironmentId === environment.id;
           const isSelected = selectedEnvironmentId === environment.id;
           const environmentSnapshots = snapshots.filter((snapshot) => snapshot.environment_id === environment.id);
@@ -107,6 +144,7 @@ export function EnvironmentList({
             </button>
           );
         })}
+        {visibleEnvironments.length === 0 ? <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-sm text-slate-400">No environments found.</div> : null}
       </div>
     </aside>
   );
