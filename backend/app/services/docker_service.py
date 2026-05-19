@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import io
+import tarfile
 
 import docker
 from docker.errors import APIError, NotFound
@@ -109,3 +111,40 @@ class DockerService:
                 volume.remove(force=True)
             except NotFound:
                 pass
+
+    def dump_postgres_database(self, container_name: str, database: str, username: str, password: str) -> bytes:
+        container = self.client.containers.get(container_name)
+        exit_code, output = container.exec_run(
+            ["sh", "-lc", f"PGPASSWORD='{password}' pg_dump -U '{username}' -d '{database}' -Fc"],
+            demux=False,
+        )
+        if exit_code != 0:
+            raise APIError(f"pg_dump failed: {output.decode('utf-8', errors='replace')}")
+        return output
+
+    def restore_postgres_database(
+        self,
+        container_name: str,
+        database: str,
+        username: str,
+        password: str,
+        dump_bytes: bytes,
+    ) -> None:
+        container = self.client.containers.get(container_name)
+        dump_path = "/tmp/relaydb-snapshot.dump"
+        archive = io.BytesIO()
+        with tarfile.open(fileobj=archive, mode="w") as tar:
+            info = tarfile.TarInfo(name="relaydb-snapshot.dump")
+            info.size = len(dump_bytes)
+            tar.addfile(info, io.BytesIO(dump_bytes))
+        archive.seek(0)
+        container.put_archive("/tmp", archive.read())
+        command = (
+            f"PGPASSWORD='{password}' dropdb -U '{username}' --if-exists '{database}' && "
+            f"PGPASSWORD='{password}' createdb -U '{username}' '{database}' && "
+            f"PGPASSWORD='{password}' pg_restore -U '{username}' -d '{database}' '{dump_path}' && "
+            f"rm -f '{dump_path}'"
+        )
+        exit_code, output = container.exec_run(["sh", "-lc", command], demux=False)
+        if exit_code != 0:
+            raise APIError(f"pg_restore failed: {output.decode('utf-8', errors='replace')}")

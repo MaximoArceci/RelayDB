@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 
-from app.schemas import ActiveEnvironmentResponse, Environment, EnvironmentCreate, EnvironmentListResponse, EnvironmentProvisionRequest, SqlExecutionRequest, SqlExecutionResponse, SwitchActiveResponse
+from app.schemas import ActiveEnvironmentResponse, Environment, EnvironmentCreate, EnvironmentListResponse, EnvironmentProvisionRequest, Snapshot, SnapshotCreate, SqlExecutionRequest, SqlExecutionResponse, SwitchActiveResponse
 from app.services.environment_service import EnvironmentService
 from app.services.environment_registry import EnvironmentRegistry
+from app.services.snapshot_service import SnapshotService
 from app.services.sql_service import SqlService
 
 router = APIRouter(prefix="/environments", tags=["environments"])
@@ -18,6 +19,10 @@ def get_environment_service() -> EnvironmentService:
 
 def get_sql_service() -> SqlService:
     return SqlService()
+
+
+def get_snapshot_service() -> SnapshotService:
+    return SnapshotService()
 
 
 @router.post("", response_model=Environment)
@@ -52,6 +57,15 @@ def execute_sql(
     service: SqlService = Depends(get_sql_service),
 ) -> SqlExecutionResponse:
     return service.execute(environment_id, payload.sql)
+
+
+@router.post("/{environment_id}/snapshots", response_model=Snapshot)
+def create_snapshot(
+    environment_id: str,
+    payload: SnapshotCreate,
+    service: SnapshotService = Depends(get_snapshot_service),
+) -> Snapshot:
+    return service.create_snapshot(environment_id, payload.name)
 
 
 @router.post("/{environment_id}/start", response_model=Environment)

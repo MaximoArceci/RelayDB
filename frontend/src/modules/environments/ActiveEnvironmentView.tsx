@@ -1,9 +1,27 @@
 import { ArrowDown, Cable, Database, HardDrive, Network, ServerCog, TerminalSquare, type LucideIcon } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
 import type { ActiveEnvironmentResponse } from "../../types/environments";
+import type { Snapshot } from "../../types/snapshots";
+import { SnapshotPanel } from "./SnapshotPanel";
 import { SqlConsole } from "./SqlConsole";
 
-export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveEnvironmentResponse | null; isSwitching: boolean }) {
+export function ActiveEnvironmentView({
+  active,
+  isSwitching,
+  snapshots,
+  isSnapshotting,
+  onCreateSnapshot,
+  onRestoreSnapshot,
+  onDeleteSnapshot,
+}: {
+  active: ActiveEnvironmentResponse | null;
+  isSwitching: boolean;
+  snapshots: Snapshot[];
+  isSnapshotting: boolean;
+  onCreateSnapshot: (environmentId: string, name: string) => void;
+  onRestoreSnapshot: (snapshotId: string, environmentId: string) => void;
+  onDeleteSnapshot: (snapshotId: string) => void;
+}) {
   const environment = active?.environment;
 
   if (!environment) {
@@ -60,6 +78,15 @@ export function ActiveEnvironmentView({ active, isSwitching }: { active: ActiveE
           postgresql://postgres:postgres@localhost:5432/app
         </div>
       </div>
+
+      <SnapshotPanel
+        environment={environment}
+        snapshots={snapshots}
+        isSnapshotting={isSnapshotting}
+        onCreate={onCreateSnapshot}
+        onRestore={onRestoreSnapshot}
+        onDelete={onDeleteSnapshot}
+      />
 
       <SqlConsole environment={environment} />
     </section>

@@ -8,6 +8,7 @@ from app.schemas.environments import (
     SqlExecutionResponse,
     SwitchActiveResponse,
 )
+from app.schemas.snapshots import Snapshot, SnapshotCreate, SnapshotListResponse
 
 __all__ = [
     "Environment",
@@ -18,4 +19,7 @@ __all__ = [
     "EnvironmentListResponse",
     "ActiveEnvironmentResponse",
     "SwitchActiveResponse",
+    "Snapshot",
+    "SnapshotCreate",
+    "SnapshotListResponse",
 ]

@@ -29,6 +29,7 @@ services:
     volumes:
       - ./backend:/app
       - relaydb_state:/relaydb-state
+      - relaydb_snapshots:/snapshots
       - /var/run/docker.sock:/var/run/docker.sock
 
   relaydb-router:
@@ -48,6 +49,7 @@ services:
 volumes:
   frontend_node_modules:
   relaydb_state:
+  relaydb_snapshots:
 
 networks:
   default:

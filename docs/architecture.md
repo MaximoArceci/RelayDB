@@ -42,9 +42,21 @@ SQL execution from the control plane is separate from the TCP router. The API
 connects directly to the selected environment over `relaydb-network` with
 `psycopg` and returns columns, rows, row count, and command status to the UI.
 
+## Snapshots
+
+Snapshots are PostgreSQL dumps, not Docker volume filesystem snapshots. The
+backend uses Docker SDK `exec_run()` to run `pg_dump` inside the source
+PostgreSQL container, writes the dump into the independent `/snapshots` mount,
+and stores lightweight snapshot metadata in shared JSON state.
+
+Restore copies the dump into the target PostgreSQL container and runs
+`dropdb`, `createdb`, and `pg_restore`. Snapshot files live in the
+`relaydb_snapshots` Docker volume, so deleting an environment does not delete
+its frozen states.
+
 ## Current Limits
 
 - Active target changes close existing router connections so clients reconnect to the new target.
 - Environment metadata is in shared file state, not durable application storage.
 - PostgreSQL readiness is currently Docker-container lifecycle level, not a deep SQL health check.
-- Snapshots, cloning, Kubernetes, auth, RBAC, and SQL parsing are intentionally out of scope.
+- Branching, differential snapshots, cloud storage, Kubernetes, auth, RBAC, and SQL parsing are intentionally out of scope.

@@ -1,6 +1,7 @@
-import { CheckCircle2, Database, HardDrive, Play, Server, Square, Trash2, type LucideIcon } from "lucide-react";
+import { Camera, CheckCircle2, Database, HardDrive, Play, Server, Square, Trash2, type LucideIcon } from "lucide-react";
 import type { MouseEventHandler } from "react";
 import type { PostgresEnvironment } from "../../types/environments";
+import type { Snapshot } from "../../types/snapshots";
 
 export function EnvironmentList({
   environments,
@@ -8,6 +9,7 @@ export function EnvironmentList({
   selectedEnvironmentId,
   isSwitching,
   actingEnvironmentId,
+  snapshots,
   onSwitch,
   onStart,
   onStop,
@@ -18,6 +20,7 @@ export function EnvironmentList({
   selectedEnvironmentId: string | null;
   isSwitching: boolean;
   actingEnvironmentId: string | null;
+  snapshots: Snapshot[];
   onSwitch: (environmentId: string) => void;
   onStart: (environmentId: string) => void;
   onStop: (environmentId: string) => void;
@@ -37,6 +40,8 @@ export function EnvironmentList({
         {environments.map((environment) => {
           const isActive = activeEnvironmentId === environment.id;
           const isSelected = selectedEnvironmentId === environment.id;
+          const environmentSnapshots = snapshots.filter((snapshot) => snapshot.environment_id === environment.id);
+          const latestSnapshot = environmentSnapshots[environmentSnapshots.length - 1];
 
           return (
             <button
@@ -58,7 +63,12 @@ export function EnvironmentList({
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                     <span className={`rounded-full border px-2 py-0.5 ${statusClass(environment.status)}`}>{environment.status}</span>
                     <span>{environment.managed ? "managed container" : "external target"}</span>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-0.5 text-cyan-100">
+                      <Camera className="h-3 w-3" />
+                      {environmentSnapshots.length} snapshot{environmentSnapshots.length === 1 ? "" : "s"}
+                    </span>
                   </div>
+                  {latestSnapshot ? <div className="mt-2 text-xs text-slate-500">Latest frozen state: {new Date(latestSnapshot.created_at).toLocaleString()}</div> : null}
                 </div>
                 {isActive ? <CheckCircle2 className="h-5 w-5 text-signal-green" /> : null}
               </div>

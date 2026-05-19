@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { createEnvironment, deleteEnvironment, getActiveEnvironment, getEnvironments, startEnvironment, stopEnvironment, switchEnvironment } from "../api/environments";
+import { createSnapshot, deleteSnapshot, getSnapshots, restoreSnapshot } from "../api/snapshots";
 import { useEnvironmentStore } from "../stores/environmentStore";
 
 export function useEnvironmentPlatform() {
@@ -10,10 +11,11 @@ export function useEnvironmentPlatform() {
     const controller = new AbortController();
     setState({ isLoading: true, error: null });
 
-    Promise.all([getEnvironments(controller.signal), getActiveEnvironment(controller.signal)])
-      .then(([environments, active]) => {
+    Promise.all([getEnvironments(controller.signal), getActiveEnvironment(controller.signal), getSnapshots(controller.signal)])
+      .then(([environments, active, snapshots]) => {
         setState({
           environments: environments.environments,
+          snapshots: snapshots.snapshots,
           active,
           selectedEnvironmentId: environments.active_environment_id,
           isLoading: false,
@@ -65,9 +67,10 @@ export function useEnvironmentPlatform() {
   }
 
   async function refreshEnvironments() {
-    const [environments, active] = await Promise.all([getEnvironments(), getActiveEnvironment()]);
+    const [environments, active, snapshots] = await Promise.all([getEnvironments(), getActiveEnvironment(), getSnapshots()]);
     setState({
       environments: environments.environments,
+      snapshots: snapshots.snapshots,
       active,
       selectedEnvironmentId: environments.active_environment_id,
       error: null,
@@ -127,5 +130,48 @@ export function useEnvironmentPlatform() {
     }
   }
 
-  return { ...state, mountEnvironment, provisionEnvironment, startManagedEnvironment, stopManagedEnvironment, deleteManagedEnvironment };
+  async function snapshotEnvironment(environmentId: string, name: string) {
+    setState({ isSnapshotting: true, error: null });
+    try {
+      await createSnapshot(environmentId, name);
+      await refreshEnvironments();
+      setState({ isSnapshotting: false });
+    } catch (error) {
+      setState({ isSnapshotting: false, error: error instanceof Error ? error.message : "Unable to create snapshot" });
+    }
+  }
+
+  async function restoreEnvironmentSnapshot(snapshotId: string, environmentId: string) {
+    setState({ isSnapshotting: true, error: null });
+    try {
+      await restoreSnapshot(snapshotId, environmentId);
+      await refreshEnvironments();
+      setState({ isSnapshotting: false });
+    } catch (error) {
+      setState({ isSnapshotting: false, error: error instanceof Error ? error.message : "Unable to restore snapshot" });
+    }
+  }
+
+  async function deleteEnvironmentSnapshot(snapshotId: string) {
+    setState({ isSnapshotting: true, error: null });
+    try {
+      await deleteSnapshot(snapshotId);
+      await refreshEnvironments();
+      setState({ isSnapshotting: false });
+    } catch (error) {
+      setState({ isSnapshotting: false, error: error instanceof Error ? error.message : "Unable to delete snapshot" });
+    }
+  }
+
+  return {
+    ...state,
+    mountEnvironment,
+    provisionEnvironment,
+    startManagedEnvironment,
+    stopManagedEnvironment,
+    deleteManagedEnvironment,
+    snapshotEnvironment,
+    restoreEnvironmentSnapshot,
+    deleteEnvironmentSnapshot,
+  };
 }

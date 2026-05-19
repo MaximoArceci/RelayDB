@@ -14,13 +14,18 @@ export function RelayDBShell() {
     isLoading,
     isSwitching,
     isProvisioning,
+    isSnapshotting,
     actingEnvironmentId,
+    snapshots,
     error,
     mountEnvironment,
     provisionEnvironment,
     startManagedEnvironment,
     stopManagedEnvironment,
     deleteManagedEnvironment,
+    snapshotEnvironment,
+    restoreEnvironmentSnapshot,
+    deleteEnvironmentSnapshot,
   } = useEnvironmentPlatform();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [environmentName, setEnvironmentName] = useState("");
@@ -119,12 +124,21 @@ export function RelayDBShell() {
           selectedEnvironmentId={selectedEnvironmentId}
           isSwitching={isSwitching}
           actingEnvironmentId={actingEnvironmentId}
+          snapshots={snapshots}
           onSwitch={mountEnvironment}
           onStart={startManagedEnvironment}
           onStop={stopManagedEnvironment}
           onDelete={deleteManagedEnvironment}
         />
-        <ActiveEnvironmentView active={active} isSwitching={isSwitching} />
+        <ActiveEnvironmentView
+          active={active}
+          isSwitching={isSwitching}
+          snapshots={snapshots}
+          isSnapshotting={isSnapshotting}
+          onCreateSnapshot={snapshotEnvironment}
+          onRestoreSnapshot={restoreEnvironmentSnapshot}
+          onDeleteSnapshot={deleteEnvironmentSnapshot}
+        />
       </main>
 
       {isCreateOpen ? (

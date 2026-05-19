@@ -45,6 +45,10 @@ GET  /api/v1/environments
 POST /api/v1/environments/active/{id}
 GET  /api/v1/environments/active
 POST /api/v1/environments/{id}/sql
+POST /api/v1/environments/{id}/snapshots
+GET  /api/v1/snapshots
+POST /api/v1/snapshots/{id}/restore/{environment_id}
+DELETE /api/v1/snapshots/{id}
 POST /api/v1/environments/{id}/start
 POST /api/v1/environments/{id}/stop
 DELETE /api/v1/environments/{id}
@@ -75,4 +79,6 @@ Example provisioning body:
 
 The backend mounts `/var/run/docker.sock` so it can create Docker volumes, containers, and attach environments to `relaydb-network`. Managed PostgreSQL containers are not exposed to the host; the router remains the stable entrypoint.
 
-No authentication, Kafka, snapshots, cloning, RBAC, Kubernetes, or AI are implemented in this MVP.
+Snapshots are `pg_dump` custom-format dump files stored in the independent `relaydb_snapshots` Docker volume mounted at `/snapshots`. Deleting an environment does not delete snapshots.
+
+No authentication, Kafka, cloning, RBAC, Kubernetes, or AI are implemented in this MVP.
