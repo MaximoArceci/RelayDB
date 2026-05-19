@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { createConnection, deleteConnection, getConnections, switchConnection, updateConnection } from "../api/connections";
 import { createEnvironment, deleteEnvironment, getActiveEnvironment, getEnvironments, startEnvironment, stopEnvironment, switchEnvironment } from "../api/environments";
-import { createSnapshot, deleteSnapshot, getSnapshots, restoreSnapshot } from "../api/snapshots";
+import { createSnapshot, deleteSnapshot, downloadSnapshot, getSnapshots, restoreSnapshot, uploadSnapshot } from "../api/snapshots";
 import { useEnvironmentStore } from "../stores/environmentStore";
 
 export function useEnvironmentPlatform() {
@@ -144,6 +144,34 @@ export function useEnvironmentPlatform() {
     }
   }
 
+  async function importEnvironmentSnapshot(environmentId: string, name: string, file: File) {
+    setState({ isSnapshotting: true, error: null });
+    try {
+      await uploadSnapshot(environmentId, name, file);
+      await refreshEnvironments();
+      setState({ isSnapshotting: false });
+    } catch (error) {
+      setState({ isSnapshotting: false, error: error instanceof Error ? error.message : "Unable to upload snapshot" });
+    }
+  }
+
+  async function downloadEnvironmentSnapshot(snapshotId: string, name: string) {
+    setState({ error: null });
+    try {
+      const blob = await downloadSnapshot(snapshotId);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${name}.dump`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setState({ error: error instanceof Error ? error.message : "Unable to download snapshot" });
+    }
+  }
+
   async function restoreEnvironmentSnapshot(snapshotId: string, environmentId: string) {
     setState({ isSnapshotting: true, error: null });
     try {
@@ -272,6 +300,8 @@ export function useEnvironmentPlatform() {
     stopManagedEnvironment,
     deleteManagedEnvironment,
     snapshotEnvironment,
+    importEnvironmentSnapshot,
+    downloadEnvironmentSnapshot,
     restoreEnvironmentSnapshot,
     deleteEnvironmentSnapshot,
     createStableConnection,

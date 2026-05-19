@@ -68,9 +68,46 @@ class SnapshotService:
         self._write_state(state)
         return snapshot
 
+    def import_snapshot(self, environment_id: str, name: str, original_filename: str, content: bytes) -> Snapshot:
+        environment = self.registry.get_environment(environment_id)
+        if not content:
+            raise HTTPException(status_code=400, detail="Snapshot file is empty")
+
+        snapshot_id = str(uuid4())
+        source_suffix = Path(original_filename).suffix or ".dump"
+        safe_suffix = source_suffix if re.fullmatch(r"\.[a-zA-Z0-9]{1,12}", source_suffix) else ".dump"
+        file_name = f"{snapshot_slug(name)}-{snapshot_id.split('-')[0]}{safe_suffix}"
+        file_path = self.snapshots_path / file_name
+        file_path.write_bytes(content)
+
+        snapshot = Snapshot(
+            id=snapshot_id,
+            environment_id=environment.id,
+            environment_name=environment.name,
+            snapshot_name=name,
+            file_path=str(file_path),
+            created_at=datetime.now(UTC).isoformat(),
+            size_bytes=file_path.stat().st_size,
+        )
+        state = self._read_state()
+        state["snapshots"].append(snapshot.model_dump())
+        self._write_state(state)
+        return snapshot
+
     def list_snapshots(self) -> SnapshotListResponse:
         state = self._read_state()
         return SnapshotListResponse(snapshots=[Snapshot(**item) for item in state["snapshots"]])
+
+    def get_snapshot_file_path(self, snapshot_id: str) -> Path:
+        snapshot = self.get_snapshot(snapshot_id)
+        file_path = Path(snapshot.file_path)
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="Snapshot dump file not found")
+        try:
+            file_path.relative_to(self.snapshots_path)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Snapshot file is outside the snapshot store") from exc
+        return file_path
 
     def restore_snapshot(self, snapshot_id: str, environment_id: str) -> Snapshot:
         snapshot = self.get_snapshot(snapshot_id)

@@ -11,6 +11,8 @@ export function ActiveEnvironmentView({
   snapshots,
   isSnapshotting,
   onCreateSnapshot,
+  onImportSnapshot,
+  onDownloadSnapshot,
   onRestoreSnapshot,
   onDeleteSnapshot,
 }: {
@@ -19,6 +21,8 @@ export function ActiveEnvironmentView({
   snapshots: Snapshot[];
   isSnapshotting: boolean;
   onCreateSnapshot: (environmentId: string, name: string) => void;
+  onImportSnapshot: (environmentId: string, name: string, file: File) => void;
+  onDownloadSnapshot: (snapshotId: string, name: string) => void;
   onRestoreSnapshot: (snapshotId: string, environmentId: string) => void;
   onDeleteSnapshot: (snapshotId: string) => void;
 }) {
@@ -76,6 +80,8 @@ export function ActiveEnvironmentView({
         snapshots={snapshots}
         isSnapshotting={isSnapshotting}
         onCreate={onCreateSnapshot}
+        onImport={onImportSnapshot}
+        onDownload={onDownloadSnapshot}
         onRestore={onRestoreSnapshot}
         onDelete={onDeleteSnapshot}
       />

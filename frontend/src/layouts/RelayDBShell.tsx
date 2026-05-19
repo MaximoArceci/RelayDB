@@ -29,6 +29,8 @@ export function RelayDBShell() {
     stopManagedEnvironment,
     deleteManagedEnvironment,
     snapshotEnvironment,
+    importEnvironmentSnapshot,
+    downloadEnvironmentSnapshot,
     restoreEnvironmentSnapshot,
     deleteEnvironmentSnapshot,
     createStableConnection,
@@ -305,6 +307,8 @@ export function RelayDBShell() {
           snapshots={snapshots}
           isSnapshotting={isSnapshotting}
           onCreateSnapshot={snapshotEnvironment}
+          onImportSnapshot={importEnvironmentSnapshot}
+          onDownloadSnapshot={downloadEnvironmentSnapshot}
           onRestoreSnapshot={restoreEnvironmentSnapshot}
           onDeleteSnapshot={deleteEnvironmentSnapshot}
         />

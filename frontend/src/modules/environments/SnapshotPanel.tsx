@@ -1,5 +1,5 @@
-import { Camera, RotateCcw, Trash2 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { Camera, Download, FileUp, RotateCcw, Trash2 } from "lucide-react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import type { PostgresEnvironment } from "../../types/environments";
 import type { Snapshot } from "../../types/snapshots";
 
@@ -8,6 +8,8 @@ export function SnapshotPanel({
   snapshots,
   isSnapshotting,
   onCreate,
+  onImport,
+  onDownload,
   onRestore,
   onDelete,
 }: {
@@ -15,10 +17,14 @@ export function SnapshotPanel({
   snapshots: Snapshot[];
   isSnapshotting: boolean;
   onCreate: (environmentId: string, name: string) => void;
+  onImport: (environmentId: string, name: string, file: File) => void;
+  onDownload: (snapshotId: string, name: string) => void;
   onRestore: (snapshotId: string, environmentId: string) => void;
   onDelete: (snapshotId: string) => void;
 }) {
   const [name, setName] = useState("");
+  const [uploadName, setUploadName] = useState("");
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,6 +34,26 @@ export function SnapshotPanel({
     }
     onCreate(environment.id, snapshotName);
     setName("");
+  }
+
+  function selectUploadFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setUploadFile(file);
+    if (file && !uploadName.trim()) {
+      setUploadName(file.name.replace(/\.[^.]+$/, ""));
+    }
+  }
+
+  function submitUpload(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const snapshotName = uploadName.trim();
+    if (!snapshotName || !uploadFile) {
+      return;
+    }
+    onImport(environment.id, snapshotName, uploadFile);
+    setUploadName("");
+    setUploadFile(null);
+    event.currentTarget.reset();
   }
 
   return (
@@ -54,6 +80,28 @@ export function SnapshotPanel({
         </button>
       </form>
 
+      <form onSubmit={submitUpload} className="mt-3 grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <input
+          value={uploadName}
+          onChange={(event) => setUploadName(event.target.value)}
+          placeholder="imported-teammate-state"
+          className="h-10 rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm text-white outline-none ring-cyan-300/30 transition placeholder:text-slate-600 focus:border-cyan-300/50 focus:ring-4"
+        />
+        <label className="flex h-10 min-w-0 cursor-pointer items-center gap-2 rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm text-slate-300 transition hover:border-cyan-300/40">
+          <FileUp className="h-4 w-4 shrink-0 text-cyan-200" />
+          <span className="truncate">{uploadFile?.name ?? "Choose dump file"}</span>
+          <input type="file" accept=".dump,.sql,.backup,application/octet-stream" onChange={selectUploadFile} className="sr-only" />
+        </label>
+        <button
+          type="submit"
+          disabled={isSnapshotting || !uploadName.trim() || !uploadFile}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-signal-green/30 bg-signal-green/10 px-3 text-sm font-medium text-signal-green transition hover:border-signal-green/60 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <FileUp className="h-4 w-4" />
+          Import
+        </button>
+      </form>
+
       <div className="mt-4 space-y-2">
         {snapshots.length ? (
           snapshots.map((snapshot) => (
@@ -65,6 +113,14 @@ export function SnapshotPanel({
                 </div>
               </div>
               <div className="flex gap-2">
+                <button
+                  onClick={() => onDownload(snapshot.id, snapshot.snapshot_name)}
+                  disabled={isSnapshotting}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-700 px-2.5 text-xs text-slate-300 transition hover:border-cyan-300/40 hover:bg-cyan-300/10 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download
+                </button>
                 <button
                   onClick={() => {
                     if (window.confirm(`Restore ${snapshot.snapshot_name} into ${environment.name}? Current database state will be replaced.`)) {
