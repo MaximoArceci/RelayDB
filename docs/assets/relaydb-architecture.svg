@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="720" viewBox="0 0 1400 720" role="img" aria-labelledby="title desc">
+  <title id="title">RelayDB architecture</title>
+  <desc id="desc">Developer app connects to RelayDB router. FastAPI control plane provisions PostgreSQL containers and snapshots through Docker Engine.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07111c"/>
+      <stop offset="100%" stop-color="#0b1624"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#020617" flood-opacity="0.5"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#67e8f9"/>
+    </marker>
+  </defs>
+  <rect width="1400" height="720" rx="0" fill="url(#bg)"/>
+  <text x="64" y="72" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="700">RelayDB</text>
+  <text x="64" y="108" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="18">Stable local PostgreSQL endpoint with Docker-managed reproducible environments</text>
+
+  <g filter="url(#shadow)">
+    <rect x="64" y="170" width="270" height="118" rx="14" fill="#0f172a" stroke="#1e293b"/>
+    <text x="92" y="214" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="14" letter-spacing="3">DEVELOPER APP</text>
+    <text x="92" y="252" fill="#f8fafc" font-family="JetBrains Mono, Consolas, monospace" font-size="17">localhost:5432</text>
+
+    <rect x="464" y="170" width="270" height="118" rx="14" fill="#0f172a" stroke="#164e63"/>
+    <text x="492" y="214" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="14" letter-spacing="3">TCP ROUTER</text>
+    <text x="492" y="252" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="17">Active target forwarding</text>
+
+    <rect x="864" y="150" width="360" height="158" rx="14" fill="#0f172a" stroke="#1e293b"/>
+    <text x="892" y="194" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="14" letter-spacing="3">POSTGRES ENVIRONMENTS</text>
+    <text x="892" y="232" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="17">postgres:16 containers</text>
+    <text x="892" y="262" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="16">one isolated Docker volume each</text>
+  </g>
+
+  <line x1="334" y1="229" x2="456" y2="229" stroke="#67e8f9" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="734" y1="229" x2="856" y2="229" stroke="#67e8f9" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="64" y="430" width="330" height="156" rx="14" fill="#0f172a" stroke="#1e293b"/>
+    <text x="92" y="474" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="14" letter-spacing="3">FRONTEND</text>
+    <text x="92" y="512" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="17">React control plane UI</text>
+    <text x="92" y="542" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="16">create, switch, snapshot, SQL</text>
+
+    <rect x="514" y="430" width="330" height="156" rx="14" fill="#0f172a" stroke="#164e63"/>
+    <text x="542" y="474" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="14" letter-spacing="3">FASTAPI BACKEND</text>
+    <text x="542" y="512" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="17">Docker SDK + psycopg</text>
+    <text x="542" y="542" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="16">provisioning and SQL execution</text>
+
+    <rect x="964" y="430" width="330" height="156" rx="14" fill="#0f172a" stroke="#1e293b"/>
+    <text x="992" y="474" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="14" letter-spacing="3">DOCKER ENGINE</text>
+    <text x="992" y="512" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="17">containers, volumes, network</text>
+    <text x="992" y="542" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="16">relaydb-network</text>
+  </g>
+
+  <line x1="394" y1="508" x2="506" y2="508" stroke="#67e8f9" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="844" y1="508" x2="956" y2="508" stroke="#67e8f9" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1129 430 C1129 350 1060 335 1044 310" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="64" y="636" width="1230" height="38" rx="10" fill="#082f49" stroke="#0e7490"/>
+  <text x="92" y="661" fill="#cffafe" font-family="JetBrains Mono, Consolas, monospace" font-size="16">DATABASE_URL=postgresql://postgres:postgres@localhost:5432/app</text>
+</svg>
