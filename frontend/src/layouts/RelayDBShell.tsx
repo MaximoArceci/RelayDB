@@ -224,7 +224,7 @@ export function RelayDBShell() {
 
       <main className="grid flex-1 grid-cols-1 gap-4 p-4 xl:grid-cols-[340px_minmax(0,1fr)]">
         <section className="xl:col-span-2">
-          <div className="grid gap-3 rounded-xl border border-slate-800/80 bg-graphite-900/70 p-4 shadow-glow backdrop-blur lg:grid-cols-[1.2fr_1fr_1fr]">
+          <div className="grid gap-3 rounded-xl border border-slate-800/80 bg-graphite-900/70 p-4 shadow-glow backdrop-blur lg:grid-cols-[1.4fr_1fr_auto]">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-cyan-200">
                 <ServerCog className="h-4 w-4" />
@@ -237,40 +237,26 @@ export function RelayDBShell() {
             <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-4 py-3">
               <div className="text-xs text-slate-500">Routes to</div>
               <div className="mt-1 truncate text-sm font-semibold text-white">{selectedConnectionTarget?.name ?? "No target"}</div>
-              <div className="mt-2 truncate font-mono text-xs text-slate-400">
-                {selectedConnectionTarget ? `${selectedConnectionTarget.host}:${selectedConnectionTarget.port}/${selectedConnectionTarget.database}` : "Choose a PostgreSQL environment"}
-              </div>
             </div>
-            <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-4 py-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-xs text-slate-500">Switch behavior</div>
-                  <div className="mt-1 text-sm font-semibold text-white">{actingConnectionId === selectedConnection?.id ? "Updating route" : "Ready"}</div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={!selectedConnection || actingConnectionId === selectedConnection?.id}
-                    onClick={openEditConnectionModal}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-700 px-2.5 text-xs text-slate-300 transition hover:border-cyan-300/40 hover:bg-cyan-300/10 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!selectedConnection || actingConnectionId === selectedConnection?.id}
-                    onClick={deleteSelectedConnection}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-signal-red/30 px-2.5 text-xs text-signal-red transition hover:bg-signal-red/10 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Delete
-                  </button>
-                </div>
-              </div>
-              <div className="mt-2 text-xs leading-5 text-slate-400">
-                Target changes are saved on this connection. Existing database client sessions must reconnect.
-              </div>
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              <button
+                type="button"
+                disabled={!selectedConnection || actingConnectionId === selectedConnection?.id}
+                onClick={openEditConnectionModal}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-700 px-3 text-xs text-slate-300 transition hover:border-cyan-300/40 hover:bg-cyan-300/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Edit
+              </button>
+              <button
+                type="button"
+                disabled={!selectedConnection || actingConnectionId === selectedConnection?.id}
+                onClick={deleteSelectedConnection}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-signal-red/30 px-3 text-xs text-signal-red transition hover:bg-signal-red/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
             </div>
           </div>
         </section>

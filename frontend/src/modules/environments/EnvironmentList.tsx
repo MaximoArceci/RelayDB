@@ -1,4 +1,4 @@
-import { Camera, CheckCircle2, Database, HardDrive, Play, Server, Square, Trash2, type LucideIcon } from "lucide-react";
+import { Camera, CheckCircle2, Database, Play, Square, Trash2, type LucideIcon } from "lucide-react";
 import type { MouseEventHandler } from "react";
 import type { PostgresEnvironment } from "../../types/environments";
 import type { Snapshot } from "../../types/snapshots";
@@ -57,9 +57,6 @@ export function EnvironmentList({
                     <span className={`h-2.5 w-2.5 rounded-full ${isActive ? "bg-signal-green" : isSelected && isSwitching ? "animate-pulse bg-signal-yellow" : "bg-slate-500"}`} />
                     {environment.name}
                   </div>
-                  <div className="mt-2 font-mono text-xs text-slate-400">
-                    {environment.host}:{environment.port}/{environment.database}
-                  </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                     <span className={`rounded-full border px-2 py-0.5 ${statusClass(environment.status)}`}>{environment.status}</span>
                     <span>{environment.managed ? "managed container" : "external target"}</span>
@@ -71,13 +68,6 @@ export function EnvironmentList({
                   {latestSnapshot ? <div className="mt-2 text-xs text-slate-500">Latest frozen state: {new Date(latestSnapshot.created_at).toLocaleString()}</div> : null}
                 </div>
                 {isActive ? <CheckCircle2 className="h-5 w-5 text-signal-green" /> : null}
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                <Meta icon={Server} label="Host" value={environment.host} />
-                <Meta icon={Database} label="Database" value={environment.database} />
-                <Meta icon={Server} label="Container" value={environment.container_name ?? "external"} />
-                <Meta icon={HardDrive} label="Volume" value={environment.volume_name ?? "external"} />
               </div>
 
               {environment.managed ? (
@@ -160,17 +150,5 @@ function ActionButton({
       <Icon className="h-3.5 w-3.5" />
       {label}
     </span>
-  );
-}
-
-function Meta({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/70 px-2.5 py-2">
-      <div className="flex items-center gap-1.5 text-slate-500">
-        <Icon className="h-3.5 w-3.5" />
-        {label}
-      </div>
-      <div className="mt-1 truncate font-medium text-slate-200">{value}</div>
-    </div>
   );
 }
