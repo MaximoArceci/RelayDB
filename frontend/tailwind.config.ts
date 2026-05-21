@@ -5,23 +5,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        graphite: {
-          950: "#07090d",
-          900: "#0b0f17",
-          850: "#101620",
-          800: "#151d29",
-          700: "#223044",
-        },
-        signal: {
-          green: "#37d17b",
-          yellow: "#f2c94c",
-          red: "#ff5c7a",
-          blue: "#60a5fa",
-        },
+        app: "rgb(var(--color-app) / <alpha-value>)",
+        surface: "rgb(var(--color-surface) / <alpha-value>)",
+        "surface-muted": "rgb(var(--color-surface-muted) / <alpha-value>)",
+        "surface-raised": "rgb(var(--color-surface-raised) / <alpha-value>)",
+        border: "rgb(var(--color-border) / <alpha-value>)",
+        "border-strong": "rgb(var(--color-border-strong) / <alpha-value>)",
+        text: "rgb(var(--color-text) / <alpha-value>)",
+        muted: "rgb(var(--color-muted) / <alpha-value>)",
+        subtle: "rgb(var(--color-subtle) / <alpha-value>)",
+        accent: "rgb(var(--color-accent) / <alpha-value>)",
+        "accent-soft": "rgb(var(--color-accent-soft) / <alpha-value>)",
+        success: "rgb(var(--color-success) / <alpha-value>)",
+        warning: "rgb(var(--color-warning) / <alpha-value>)",
+        danger: "rgb(var(--color-danger) / <alpha-value>)",
       },
       boxShadow: {
-        glow: "0 0 30px rgba(96, 165, 250, 0.14)",
-        risk: "0 0 28px rgba(255, 92, 122, 0.2)",
+        glow: "var(--shadow-glow)",
+        risk: "var(--shadow-risk)",
       },
       animation: {
         "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",

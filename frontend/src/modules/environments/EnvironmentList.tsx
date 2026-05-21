@@ -32,22 +32,20 @@ export function EnvironmentList({
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   const visibleEnvironments = normalizedQuery
-    ? environments.filter((environment) =>
-        `${environment.name} ${environment.status} ${environment.managed ? "managed container" : "external target"}`.toLowerCase().includes(normalizedQuery),
-      )
+    ? environments.filter((environment) => `${environment.name} ${environment.status}`.toLowerCase().includes(normalizedQuery))
     : environments;
 
   return (
-    <aside className="flex min-h-[420px] flex-col overflow-hidden rounded-xl border border-slate-800/80 bg-graphite-900/75 p-4 shadow-glow backdrop-blur xl:sticky xl:top-3 xl:h-[calc(100vh-9.5rem)]">
+    <aside className="flex min-h-[420px] flex-col overflow-hidden rounded-none border border-border/80 bg-surface/75 p-4 shadow-glow backdrop-blur xl:sticky xl:top-3 xl:h-[calc(100vh-9.5rem)]">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Provisioned Targets</div>
-          <h2 className="mt-1 text-lg font-semibold text-white">PostgreSQL environments</h2>
+          <div className="text-xs uppercase tracking-[0.18em] text-subtle">Provisioned Targets</div>
+          <h2 className="mt-1 text-lg font-semibold text-text">PostgreSQL environments</h2>
         </div>
         <button
           type="button"
           onClick={onCreate}
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-cyan-300/30 bg-cyan-300/10 px-2.5 text-xs font-medium text-cyan-100 transition hover:border-cyan-300/60 hover:bg-cyan-300/15"
+          className="inline-flex h-8 items-center gap-1.5 rounded-none border border-accent bg-accent px-2.5 text-xs font-medium text-app transition hover:bg-accent/90"
         >
           <Plus className="h-3.5 w-3.5" />
           New
@@ -59,13 +57,13 @@ export function EnvironmentList({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search environments"
-          className="h-10 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 pr-10 text-sm text-white outline-none ring-cyan-300/30 transition placeholder:text-slate-600 focus:border-cyan-300/50 focus:ring-4"
+          className="h-10 w-full rounded-none border border-border bg-app px-3 pr-10 text-sm text-text outline-none ring-accent/30 transition placeholder:text-subtle/70 focus:border-accent/50 focus:ring-4"
         />
         {query ? (
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-white"
+            className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-none text-subtle transition hover:bg-border hover:text-text"
             aria-label="Clear environment search"
           >
             <X className="h-3.5 w-3.5" />
@@ -84,27 +82,26 @@ export function EnvironmentList({
             <button
               key={environment.id}
               onClick={() => onSwitch(environment.id)}
-              className={`w-full rounded-xl border p-4 text-left transition ${
-                isActive ? "border-cyan-300/50 bg-cyan-300/10 shadow-glow" : "border-slate-800 bg-slate-950/60 hover:border-cyan-300/30"
+              className={`w-full rounded-none border p-4 text-left transition ${
+                isActive ? "border-accent bg-accent/20 shadow-glow" : "border-border bg-app/60 hover:border-accent/60"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                    <span className={`h-2.5 w-2.5 rounded-full ${isActive ? "bg-signal-green" : isSelected && isSwitching ? "animate-pulse bg-signal-yellow" : "bg-slate-500"}`} />
+                  <div className="flex items-center gap-2 text-sm font-semibold text-text">
+                    <span className={`h-2.5 w-2.5 rounded-full ${isActive ? "bg-success" : isSelected && isSwitching ? "animate-pulse bg-warning" : "bg-subtle"}`} />
                     {environment.name}
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-subtle">
                     <span className={`rounded-full border px-2 py-0.5 ${statusClass(environment.status)}`}>{environment.status}</span>
-                    <span>{environment.managed ? "managed container" : "external target"}</span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-0.5 text-cyan-100">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 text-accent/90">
                       <Camera className="h-3 w-3" />
                       {environmentSnapshots.length} snapshot{environmentSnapshots.length === 1 ? "" : "s"}
                     </span>
                   </div>
-                  {latestSnapshot ? <div className="mt-2 text-xs text-slate-500">Latest frozen state: {new Date(latestSnapshot.created_at).toLocaleString()}</div> : null}
+                  {latestSnapshot ? <div className="mt-2 text-xs text-subtle">Latest frozen state: {new Date(latestSnapshot.created_at).toLocaleString()}</div> : null}
                 </div>
-                {isActive ? <CheckCircle2 className="h-5 w-5 text-signal-green" /> : null}
+                {isActive ? <CheckCircle2 className="h-5 w-5 text-success" /> : null}
               </div>
 
               {environment.managed ? (
@@ -144,7 +141,7 @@ export function EnvironmentList({
             </button>
           );
         })}
-        {visibleEnvironments.length === 0 ? <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-sm text-slate-400">No environments found.</div> : null}
+        {visibleEnvironments.length === 0 ? <div className="rounded-none border border-border bg-app/60 p-3 text-sm text-muted/80">No environments found.</div> : null}
       </div>
     </aside>
   );
@@ -152,15 +149,15 @@ export function EnvironmentList({
 
 function statusClass(status: string) {
   if (status === "running") {
-    return "border-signal-green/30 bg-signal-green/10 text-signal-green";
+    return "border-success/30 bg-success/10 text-success";
   }
   if (status === "exited" || status === "created") {
-    return "border-signal-yellow/30 bg-signal-yellow/10 text-signal-yellow";
+    return "border-warning/30 bg-warning/10 text-warning";
   }
   if (status === "missing") {
-    return "border-signal-red/30 bg-signal-red/10 text-signal-red";
+    return "border-danger/30 bg-danger/10 text-danger";
   }
-  return "border-slate-700 bg-slate-900 text-slate-400";
+  return "border-border-strong bg-surface-muted text-muted/80";
 }
 
 function ActionButton({
@@ -181,8 +178,8 @@ function ActionButton({
       role="button"
       aria-disabled={disabled}
       onClick={disabled ? undefined : onClick}
-      className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs transition ${
-        danger ? "border-signal-red/30 text-signal-red hover:bg-signal-red/10" : "border-slate-700 text-slate-300 hover:border-cyan-300/40 hover:bg-cyan-300/10"
+      className={`inline-flex h-8 items-center gap-1.5 rounded-none border px-2.5 text-xs transition ${
+        danger ? "border-danger/30 text-danger hover:bg-danger/10" : "border-border-strong text-muted hover:border-accent/40 hover:bg-accent/10"
       } ${disabled ? "cursor-not-allowed opacity-45" : "cursor-pointer"}`}
     >
       <Icon className="h-3.5 w-3.5" />
