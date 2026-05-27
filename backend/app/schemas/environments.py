@@ -8,6 +8,7 @@ class EnvironmentCreate(BaseModel):
     database: str = Field(min_length=1)
     username: str = Field(min_length=1)
     password: str = Field(min_length=1)
+    project_id: str = "default"
 
 
 class Environment(EnvironmentCreate):
@@ -21,6 +22,7 @@ class Environment(EnvironmentCreate):
 
 class EnvironmentProvisionRequest(BaseModel):
     name: str = Field(min_length=1)
+    project_id: str = "default"
 
 
 class SqlExecutionRequest(BaseModel):

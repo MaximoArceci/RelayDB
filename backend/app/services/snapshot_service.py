@@ -10,7 +10,7 @@ from fastapi import HTTPException
 from app.core.settings import settings
 from app.schemas import Snapshot, SnapshotListResponse
 from app.services.docker_service import DockerService
-from app.services.environment_registry import EnvironmentRegistry
+from app.services.environment_registry import DEFAULT_PROJECT_ID, EnvironmentRegistry
 
 
 def snapshot_slug(value: str) -> str:
@@ -56,6 +56,7 @@ class SnapshotService:
         file_path.write_bytes(dump)
         snapshot = Snapshot(
             id=snapshot_id,
+            project_id=environment.project_id,
             environment_id=environment.id,
             environment_name=environment.name,
             snapshot_name=name,
@@ -82,6 +83,7 @@ class SnapshotService:
 
         snapshot = Snapshot(
             id=snapshot_id,
+            project_id=environment.project_id,
             environment_id=environment.id,
             environment_name=environment.name,
             snapshot_name=name,
@@ -96,7 +98,8 @@ class SnapshotService:
 
     def list_snapshots(self) -> SnapshotListResponse:
         state = self._read_state()
-        return SnapshotListResponse(snapshots=[Snapshot(**item) for item in state["snapshots"]])
+        project_id = self.registry.read_state()["active_project_id"]
+        return SnapshotListResponse(snapshots=[Snapshot(**item) for item in state["snapshots"] if item.get("project_id", DEFAULT_PROJECT_ID) == project_id])
 
     def get_snapshot_file_path(self, snapshot_id: str) -> Path:
         snapshot = self.get_snapshot(snapshot_id)
@@ -112,6 +115,8 @@ class SnapshotService:
     def restore_snapshot(self, snapshot_id: str, environment_id: str) -> Snapshot:
         snapshot = self.get_snapshot(snapshot_id)
         target = self.registry.get_environment(environment_id)
+        if snapshot.project_id != target.project_id:
+            raise HTTPException(status_code=400, detail="Snapshot belongs to another project")
         if not target.container_name:
             raise HTTPException(status_code=400, detail="Restore requires a RelayDB-managed PostgreSQL container")
         file_path = Path(snapshot.file_path)

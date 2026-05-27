@@ -8,6 +8,7 @@ class ConnectionSlotCreate(BaseModel):
     owner: str = Field(min_length=1)
     stable_port: int = Field(ge=1, le=65535)
     target_environment_id: str = Field(min_length=1)
+    project_id: str = "default"
 
 
 class ConnectionSlotUpdate(BaseModel):
@@ -15,6 +16,7 @@ class ConnectionSlotUpdate(BaseModel):
     owner: str | None = Field(default=None, min_length=1)
     stable_port: int | None = Field(default=None, ge=1, le=65535)
     target_environment_id: str | None = Field(default=None, min_length=1)
+    project_id: str | None = Field(default=None, min_length=1)
 
 
 class ConnectionSlot(ConnectionSlotCreate):

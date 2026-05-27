@@ -7,6 +7,7 @@ class SnapshotCreate(BaseModel):
 
 class Snapshot(BaseModel):
     id: str
+    project_id: str = "default"
     environment_id: str
     environment_name: str
     snapshot_name: str

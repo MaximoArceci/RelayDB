@@ -1,5 +1,6 @@
 export interface PostgresEnvironment {
   id: string;
+  project_id: string;
   name: string;
   host: string;
   port: number;
@@ -15,6 +16,7 @@ export interface PostgresEnvironment {
 
 export interface CreateEnvironmentPayload {
   name: string;
+  project_id: string;
 }
 
 export interface EnvironmentsResponse {

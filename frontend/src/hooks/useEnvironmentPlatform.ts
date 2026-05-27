@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createConnection, deleteConnection, getConnections, switchConnection, updateConnection } from "../api/connections";
 import { createEnvironment, deleteEnvironment, getActiveEnvironment, getEnvironments, startEnvironment, stopEnvironment, switchEnvironment } from "../api/environments";
+import { createProject, getProjects, switchProject } from "../api/projects";
 import { createSnapshot, deleteSnapshot, downloadSnapshot, getSnapshots, restoreSnapshot, uploadSnapshot } from "../api/snapshots";
 import { useEnvironmentStore } from "../stores/environmentStore";
 
@@ -12,9 +13,11 @@ export function useEnvironmentPlatform() {
     const controller = new AbortController();
     setState({ isLoading: true, error: null });
 
-    Promise.all([getEnvironments(controller.signal), getActiveEnvironment(controller.signal), getSnapshots(controller.signal), getConnections(controller.signal)])
-      .then(([environments, active, snapshots, connections]) => {
+    Promise.all([getProjects(controller.signal), getEnvironments(controller.signal), getActiveEnvironment(controller.signal), getSnapshots(controller.signal), getConnections(controller.signal)])
+      .then(([projects, environments, active, snapshots, connections]) => {
         setState({
+          projects: projects.projects,
+          activeProjectId: projects.active_project_id,
           environments: environments.environments,
           connections: connections.connections,
           snapshots: snapshots.snapshots,
@@ -69,8 +72,10 @@ export function useEnvironmentPlatform() {
   }
 
   async function refreshEnvironments() {
-    const [environments, active, snapshots, connections] = await Promise.all([getEnvironments(), getActiveEnvironment(), getSnapshots(), getConnections()]);
+    const [projects, environments, active, snapshots, connections] = await Promise.all([getProjects(), getEnvironments(), getActiveEnvironment(), getSnapshots(), getConnections()]);
     setState({
+      projects: projects.projects,
+      activeProjectId: projects.active_project_id,
       environments: environments.environments,
       connections: connections.connections,
       snapshots: snapshots.snapshots,
@@ -83,7 +88,7 @@ export function useEnvironmentPlatform() {
   async function provisionEnvironment(name: string) {
     setState({ isProvisioning: true, error: null });
     try {
-      const environment = await createEnvironment({ name });
+      const environment = await createEnvironment({ name, project_id: state.activeProjectId });
       setState({
         environments: [...state.environments, environment],
         active: state.active?.environment ? state.active : { environment, stable_endpoint: "localhost:5432" },
@@ -197,7 +202,7 @@ export function useEnvironmentPlatform() {
   async function createStableConnection(name: string, owner: string, stablePort: number, targetEnvironmentId: string) {
     setState({ isCreatingConnection: true, error: null });
     try {
-      const connection = await createConnection({ name, owner, stable_port: stablePort, target_environment_id: targetEnvironmentId });
+      const connection = await createConnection({ name, owner, stable_port: stablePort, target_environment_id: targetEnvironmentId, project_id: state.activeProjectId });
       setState({ connections: [...state.connections, connection], selectedEnvironmentId: targetEnvironmentId });
       await refreshEnvironments();
       setState({ isCreatingConnection: false });
@@ -249,6 +254,7 @@ export function useEnvironmentPlatform() {
         owner,
         stable_port: stablePort,
         target_environment_id: targetEnvironmentId,
+        project_id: state.activeProjectId,
       });
       setState({
         connections: state.connections.map((item) => (item.id === connection.id ? connection : item)),
@@ -292,6 +298,31 @@ export function useEnvironmentPlatform() {
     }
   }
 
+  async function createWorkspaceProject(name: string, description = "") {
+    setState({ isCreatingProject: true, error: null });
+    try {
+      const project = await createProject({ name, description });
+      await switchProject(project.id);
+      await refreshEnvironments();
+      setState({ isCreatingProject: false });
+      return project;
+    } catch (error) {
+      setState({ isCreatingProject: false, error: error instanceof Error ? error.message : "Unable to create project" });
+      throw error;
+    }
+  }
+
+  async function switchWorkspaceProject(projectId: string) {
+    setState({ isLoading: true, error: null });
+    try {
+      await switchProject(projectId);
+      await refreshEnvironments();
+      setState({ isLoading: false });
+    } catch (error) {
+      setState({ isLoading: false, error: error instanceof Error ? error.message : "Unable to switch project" });
+    }
+  }
+
   return {
     ...state,
     mountEnvironment,
@@ -308,5 +339,7 @@ export function useEnvironmentPlatform() {
     switchStableConnection,
     updateStableConnection,
     deleteStableConnection,
+    createWorkspaceProject,
+    switchWorkspaceProject,
   };
 }

@@ -1,5 +1,6 @@
 export interface ConnectionSlot {
   id: string;
+  project_id: string;
   name: string;
   owner: string;
   stable_port: number;
@@ -13,6 +14,7 @@ export interface CreateConnectionPayload {
   owner: string;
   stable_port: number;
   target_environment_id: string;
+  project_id: string;
 }
 
 export type UpdateConnectionPayload = Partial<CreateConnectionPayload>;

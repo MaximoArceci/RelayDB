@@ -22,7 +22,10 @@ class ConnectionService:
 
     def create_connection(self, payload: ConnectionSlotCreate) -> ConnectionSlot:
         state = self.registry.read_state()
-        self.registry.find_environment(state, payload.target_environment_id)
+        environment = self.registry.find_environment(state, payload.target_environment_id)
+        self.registry.find_project(state, payload.project_id)
+        if environment.project_id != payload.project_id:
+            raise HTTPException(status_code=400, detail="Connection target belongs to another project")
 
         if any(item["stable_port"] == payload.stable_port for item in state.get("connections", [])):
             raise HTTPException(status_code=409, detail="Stable port is already assigned to a connection")
@@ -38,7 +41,10 @@ class ConnectionService:
 
     def list_connections(self) -> ConnectionSlotListResponse:
         state = self.registry.read_state()
-        return ConnectionSlotListResponse(connections=[ConnectionSlot(**item) for item in state.get("connections", [])])
+        project_id = state["active_project_id"]
+        return ConnectionSlotListResponse(
+            connections=[ConnectionSlot(**item) for item in state.get("connections", []) if item.get("project_id") == project_id]
+        )
 
     def get_connection(self, connection_id: str) -> ConnectionSlot:
         state = self.registry.read_state()
@@ -46,10 +52,12 @@ class ConnectionService:
 
     def switch_connection(self, connection_id: str, environment_id: str) -> ConnectionSlot:
         state = self.registry.read_state()
-        self.registry.find_environment(state, environment_id)
+        environment = self.registry.find_environment(state, environment_id)
 
         for index, item in enumerate(state.get("connections", [])):
             if item["id"] == connection_id:
+                if item.get("project_id") != environment.project_id:
+                    raise HTTPException(status_code=400, detail="Connection target belongs to another project")
                 updated = {**item, "target_environment_id": environment_id, "status": "active"}
                 state["connections"][index] = updated
                 self.registry.write_state(state)
@@ -66,7 +74,13 @@ class ConnectionService:
 
         target_environment_id = changes.get("target_environment_id")
         if target_environment_id is not None:
-            self.registry.find_environment(state, target_environment_id)
+            environment = self.registry.find_environment(state, target_environment_id)
+            next_project_id = changes.get("project_id")
+            if next_project_id is not None:
+                self.registry.find_project(state, next_project_id)
+            for item in state.get("connections", []):
+                if item["id"] == connection_id and environment.project_id != (next_project_id or item.get("project_id")):
+                    raise HTTPException(status_code=400, detail="Connection target belongs to another project")
 
         stable_port = changes.get("stable_port")
         if stable_port is not None and any(

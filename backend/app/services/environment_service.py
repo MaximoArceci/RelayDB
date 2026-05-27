@@ -50,6 +50,7 @@ class EnvironmentService:
 
         environment = Environment(
             id=environment_id,
+            project_id=payload.project_id,
             name=payload.name,
             host=provisioned.host,
             port=provisioned.port,

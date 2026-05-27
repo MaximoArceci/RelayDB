@@ -10,6 +10,7 @@ from app.schemas.environments import (
     SwitchActiveResponse,
 )
 from app.schemas.snapshots import Snapshot, SnapshotCreate, SnapshotListResponse
+from app.schemas.projects import ActiveProjectResponse, Project, ProjectCreate, ProjectListResponse
 
 __all__ = [
     "ConnectionSlot",
@@ -26,4 +27,8 @@ __all__ = [
     "Snapshot",
     "SnapshotCreate",
     "SnapshotListResponse",
+    "Project",
+    "ProjectCreate",
+    "ProjectListResponse",
+    "ActiveProjectResponse",
 ]

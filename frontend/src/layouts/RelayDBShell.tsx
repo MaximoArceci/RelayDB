@@ -13,6 +13,8 @@ export function RelayDBShell() {
   const {
     environments,
     connections,
+    projects,
+    activeProjectId,
     active,
     selectedEnvironmentId,
     isLoading,
@@ -38,6 +40,7 @@ export function RelayDBShell() {
     switchStableConnection,
     updateStableConnection,
     deleteStableConnection,
+    switchWorkspaceProject,
   } = useEnvironmentPlatform();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isConnectionOpen, setIsConnectionOpen] = useState(false);
@@ -53,6 +56,7 @@ export function RelayDBShell() {
   const selectedConnectionTarget = environments.find((environment) => environment.id === selectedConnectionTargetId) ?? null;
   const selectedConnectionString = selectedConnection ? `postgresql://postgres:postgres@localhost:${selectedConnection.stable_port}/${selectedConnectionTarget?.database ?? "app"}` : null;
   const editingConnection = editingConnectionId ? connections.find((connection) => connection.id === editingConnectionId) ?? null : null;
+  const requestedProjectId = decodeURIComponent(window.location.pathname.split("/app/projects/")[1]?.split("/")[0] ?? "");
 
   useEffect(() => {
     if (connections.length === 0) {
@@ -63,6 +67,14 @@ export function RelayDBShell() {
       setSelectedConnectionId(connections[0].id);
     }
   }, [connections, selectedConnectionId]);
+
+  useEffect(() => {
+    if (!requestedProjectId || requestedProjectId === activeProjectId || !projects.some((project) => project.id === requestedProjectId)) {
+      return;
+    }
+    setSelectedConnectionId("");
+    void switchWorkspaceProject(requestedProjectId);
+  }, [activeProjectId, projects, requestedProjectId, switchWorkspaceProject]);
 
   async function submitEnvironment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -166,7 +178,16 @@ export function RelayDBShell() {
   return (
     <div className="flex min-h-screen flex-col text-text">
       <header className="flex min-h-16 flex-wrap items-center gap-3 border-b border-border/80 bg-app/90 px-5 py-3 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            window.history.pushState(null, "", "/app");
+            window.dispatchEvent(new PopStateEvent("popstate"));
+          }}
+          className="flex items-center gap-3 text-left transition hover:text-accent"
+          aria-label="Back to projects"
+          title="Back to projects"
+        >
           <div className="flex h-9 w-9 items-center justify-center rounded-none border border-accent bg-accent shadow-glow">
             <Database className="h-5 w-5 text-app" />
           </div>
@@ -174,7 +195,7 @@ export function RelayDBShell() {
             <div className="text-sm font-semibold tracking-wide">RelayDB</div>
             <div className="text-xs text-subtle">Stable PostgreSQL routing</div>
           </div>
-        </div>
+        </button>
 
         <div className="hidden min-w-0 flex-1 items-center gap-2 text-xs text-subtle xl:flex">
           <Cable className="h-4 w-4 text-accent" />

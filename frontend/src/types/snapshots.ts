@@ -1,5 +1,6 @@
 export interface Snapshot {
   id: string;
+  project_id: string;
   environment_id: string;
   environment_name: string;
   snapshot_name: string;
