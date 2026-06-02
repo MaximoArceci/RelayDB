@@ -57,8 +57,8 @@ const useCases = [
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen text-text">
-      <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5">
+    <div className="min-h-screen overflow-x-hidden text-text">
+      <header className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-5">
         <a href="/" className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center border border-accent bg-accent shadow-glow">
             <Database className="h-5 w-5 text-app" />
@@ -70,7 +70,7 @@ export function LandingPage() {
         </a>
         <a
           href="/app/"
-          className="inline-flex h-10 items-center gap-2 border border-accent bg-accent px-4 text-sm font-medium text-app transition hover:border-accent-soft hover:bg-accent-soft"
+          className="inline-flex h-10 w-full items-center justify-center gap-2 border border-accent bg-accent px-4 text-sm font-medium text-app transition hover:border-accent-soft hover:bg-accent-soft sm:w-auto"
         >
           Open app
           <ArrowRight className="h-4 w-4" />
@@ -78,40 +78,40 @@ export function LandingPage() {
       </header>
 
       <main>
-        <section className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-7xl items-center gap-10 px-5 pb-14 pt-8 lg:grid-cols-[minmax(0,1fr)_520px]">
+        <section className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-7xl items-start gap-8 px-4 pb-12 pt-6 sm:px-5 sm:pt-8 lg:items-center lg:grid-cols-[minmax(0,1fr)_520px]">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 border border-border bg-surface/75 px-3 py-2 text-xs font-medium uppercase tracking-[0.16em] text-accent">
               <ShieldCheck className="h-4 w-4" />
               Local infra for database-heavy teams
             </div>
-            <h1 className="mt-7 max-w-4xl text-5xl font-semibold leading-tight text-text sm:text-6xl lg:text-7xl">
+            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-tight text-text sm:mt-7 sm:text-5xl lg:text-7xl">
               RelayDB
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted sm:text-xl sm:leading-9">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted sm:mt-6 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9">
               RelayDB lets developers run multiple local PostgreSQL databases without changing the connection string in their app every time they switch context.
             </p>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted sm:text-base sm:leading-7">
               Create disposable database environments, route stable localhost ports to the right target, and capture snapshots of useful states so debugging, QA, and demos start from known data.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <a
                 href="/app/"
-                className="inline-flex h-12 items-center justify-center gap-2 border border-accent bg-accent px-5 text-sm font-semibold text-app shadow-glow transition hover:border-accent-soft hover:bg-accent-soft"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 border border-accent bg-accent px-5 text-sm font-semibold text-app shadow-glow transition hover:border-accent-soft hover:bg-accent-soft sm:w-auto"
               >
                 Launch RelayDB
                 <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 href="#how-it-works"
-                className="inline-flex h-12 items-center justify-center border border-border bg-surface/70 px-5 text-sm font-medium text-muted transition hover:border-accent/60 hover:text-text"
+                className="inline-flex h-12 w-full items-center justify-center border border-border bg-surface/70 px-5 text-sm font-medium text-muted transition hover:border-accent/60 hover:text-text sm:w-auto"
               >
                 How it works
               </a>
             </div>
           </div>
 
-          <div className="border border-border bg-surface/80 p-4 shadow-glow backdrop-blur">
-            <div className="border border-border bg-app p-4">
+          <div className="border border-border bg-surface/80 p-3 shadow-glow backdrop-blur sm:p-4">
+            <div className="border border-border bg-app p-3 sm:p-4">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-accent">
                   <TerminalSquare className="h-4 w-4" />
@@ -122,7 +122,7 @@ export function LandingPage() {
               <div className="mt-5 space-y-4">
                 <div>
                   <div className="text-xs text-subtle">Application URL</div>
-                  <div className="mt-2 border border-border bg-surface px-3 py-3 font-mono text-sm text-text">
+                  <div className="mt-2 break-all border border-border bg-surface px-3 py-3 font-mono text-[13px] leading-5 text-text sm:text-sm">
                     postgresql://postgres:postgres@localhost:15432/app
                   </div>
                 </div>
@@ -143,7 +143,7 @@ export function LandingPage() {
         </section>
 
         <section className="border-t border-border bg-surface/45">
-          <div className="mx-auto grid w-full max-w-7xl gap-3 px-5 py-8 md:grid-cols-3">
+          <div className="mx-auto grid w-full max-w-7xl gap-3 px-4 py-8 sm:px-5 md:grid-cols-3">
             {capabilities.map((item) => (
               <div key={item.title} className="border border-border bg-app/70 p-5">
                 <item.icon className="h-5 w-5 text-accent" />
@@ -154,19 +154,19 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[360px_minmax(0,1fr)]" id="how-it-works">
+        <section className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-12 sm:px-5 sm:py-16 lg:grid-cols-[360px_minmax(0,1fr)]" id="how-it-works">
           <div>
             <div className="text-xs font-medium uppercase tracking-[0.18em] text-accent">What it solves</div>
-            <h2 className="mt-3 text-3xl font-semibold leading-tight text-text sm:text-4xl">
+            <h2 className="mt-3 text-2xl font-semibold leading-tight text-text sm:text-3xl sm:leading-tight lg:text-4xl">
               Local database work stops being tied to one fragile state.
             </h2>
-            <p className="mt-4 text-sm leading-7 text-muted">
+            <p className="mt-4 text-sm leading-7 text-muted sm:text-sm">
               Without RelayDB, a developer usually has one local Postgres instance. Testing a branch, importing QA data, reproducing a bug, or resetting a demo can overwrite the same database and force constant connection-string edits.
             </p>
           </div>
           <div className="grid gap-3">
             {workflow.map((item) => (
-              <div key={item.step} className="grid gap-4 border border-border bg-surface/70 p-5 sm:grid-cols-[72px_minmax(0,1fr)]">
+              <div key={item.step} className="grid gap-3 border border-border bg-surface/70 p-4 sm:grid-cols-[72px_minmax(0,1fr)] sm:gap-4 sm:p-5">
                 <div className="font-mono text-sm text-accent">{item.step}</div>
                 <div>
                   <h3 className="text-lg font-semibold text-text">{item.title}</h3>
@@ -178,10 +178,10 @@ export function LandingPage() {
         </section>
 
         <section className="border-y border-border bg-surface/45">
-          <div className="mx-auto grid w-full max-w-7xl gap-8 px-5 py-16 lg:grid-cols-[minmax(0,1fr)_430px]">
+          <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-12 sm:px-5 sm:py-16 lg:grid-cols-[minmax(0,1fr)_430px]">
             <div>
               <div className="text-xs font-medium uppercase tracking-[0.18em] text-accent">For daily development</div>
-              <h2 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight text-text sm:text-4xl">
+              <h2 className="mt-3 max-w-3xl text-2xl font-semibold leading-tight text-text sm:text-3xl lg:text-4xl">
                 Keep the application stable while the database target changes.
               </h2>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-muted">
@@ -196,7 +196,7 @@ export function LandingPage() {
                 ))}
               </div>
             </div>
-            <div className="border border-border bg-app p-4">
+            <div className="border border-border bg-app p-3 sm:p-4">
               <div className="flex items-center gap-2 border-b border-border pb-3 text-xs uppercase tracking-[0.16em] text-accent">
                 <Network className="h-4 w-4" />
                 Mental model
@@ -212,14 +212,14 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-5 py-14 sm:flex-row sm:items-center sm:justify-between">
+        <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-12 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-14">
           <div>
             <div className="text-xs font-medium uppercase tracking-[0.18em] text-accent">Ready to inspect it</div>
-            <h2 className="mt-3 text-2xl font-semibold text-text">Open the control plane and choose a stable connection.</h2>
+            <h2 className="mt-3 text-xl font-semibold text-text sm:text-2xl">Open the control plane and choose a stable connection.</h2>
           </div>
           <a
             href="/app/"
-            className="inline-flex h-12 items-center justify-center gap-2 border border-accent bg-accent px-5 text-sm font-semibold text-app shadow-glow transition hover:border-accent-soft hover:bg-accent-soft"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 border border-accent bg-accent px-5 text-sm font-semibold text-app shadow-glow transition hover:border-accent-soft hover:bg-accent-soft sm:w-auto"
           >
             Open RelayDB
             <ArrowRight className="h-4 w-4" />
