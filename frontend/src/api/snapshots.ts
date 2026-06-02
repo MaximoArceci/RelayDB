@@ -1,7 +1,8 @@
+import { apiFetch } from "./client";
 import type { Snapshot, SnapshotListResponse } from "../types/snapshots";
 
 export async function getSnapshots(signal?: AbortSignal) {
-  const response = await fetch("/api/v1/snapshots", {
+  const response = await apiFetch("/api/v1/snapshots", {
     headers: { Accept: "application/json" },
     signal,
   });
@@ -14,7 +15,7 @@ export async function getSnapshots(signal?: AbortSignal) {
 }
 
 export async function createSnapshot(environmentId: string, name: string) {
-  const response = await fetch(`/api/v1/environments/${environmentId}/snapshots`, {
+  const response = await apiFetch(`/api/v1/environments/${environmentId}/snapshots`, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
@@ -34,7 +35,7 @@ export async function uploadSnapshot(environmentId: string, name: string, file: 
   formData.append("name", name);
   formData.append("file", file);
 
-  const response = await fetch("/api/v1/snapshots/upload", {
+  const response = await apiFetch("/api/v1/snapshots/upload", {
     method: "POST",
     headers: { Accept: "application/json" },
     body: formData,
@@ -49,7 +50,7 @@ export async function uploadSnapshot(environmentId: string, name: string, file: 
 }
 
 export async function downloadSnapshot(snapshotId: string) {
-  const response = await fetch(`/api/v1/snapshots/${snapshotId}/download`, {
+  const response = await apiFetch(`/api/v1/snapshots/${snapshotId}/download`, {
     headers: { Accept: "application/octet-stream" },
   });
 
@@ -62,7 +63,7 @@ export async function downloadSnapshot(snapshotId: string) {
 }
 
 export async function restoreSnapshot(snapshotId: string, environmentId: string) {
-  const response = await fetch(`/api/v1/snapshots/${snapshotId}/restore/${environmentId}`, {
+  const response = await apiFetch(`/api/v1/snapshots/${snapshotId}/restore/${environmentId}`, {
     method: "POST",
     headers: { Accept: "application/json" },
   });
@@ -76,7 +77,7 @@ export async function restoreSnapshot(snapshotId: string, environmentId: string)
 }
 
 export async function deleteSnapshot(snapshotId: string) {
-  const response = await fetch(`/api/v1/snapshots/${snapshotId}`, {
+  const response = await apiFetch(`/api/v1/snapshots/${snapshotId}`, {
     method: "DELETE",
     headers: { Accept: "application/json" },
   });

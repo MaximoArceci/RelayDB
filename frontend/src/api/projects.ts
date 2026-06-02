@@ -1,4 +1,4 @@
-import { apiGet } from "./client";
+import { apiFetch, apiGet } from "./client";
 import type { ActiveProjectResponse, CreateProjectPayload, Project, ProjectsResponse } from "../types/projects";
 
 export function getProjects(signal?: AbortSignal) {
@@ -6,7 +6,7 @@ export function getProjects(signal?: AbortSignal) {
 }
 
 export async function createProject(payload: CreateProjectPayload) {
-  const response = await fetch("/api/v1/projects", {
+  const response = await apiFetch("/api/v1/projects", {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -21,7 +21,7 @@ export async function createProject(payload: CreateProjectPayload) {
 }
 
 export async function switchProject(projectId: string) {
-  const response = await fetch(`/api/v1/projects/active/${projectId}`, {
+  const response = await apiFetch(`/api/v1/projects/active/${projectId}`, {
     method: "POST",
     headers: { Accept: "application/json" },
   });

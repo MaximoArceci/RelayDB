@@ -1,4 +1,4 @@
-import { apiGet } from "./client";
+import { apiFetch, apiGet } from "./client";
 import type { ActiveEnvironmentResponse, CreateEnvironmentPayload, EnvironmentsResponse, PostgresEnvironment, SqlExecutionResponse } from "../types/environments";
 
 export function getEnvironments(signal?: AbortSignal) {
@@ -10,7 +10,7 @@ export function getActiveEnvironment(signal?: AbortSignal) {
 }
 
 export async function switchEnvironment(environmentId: string) {
-  const response = await fetch(`/api/v1/environments/active/${environmentId}`, {
+  const response = await apiFetch(`/api/v1/environments/active/${environmentId}`, {
     method: "POST",
     headers: { Accept: "application/json" },
   });
@@ -23,7 +23,7 @@ export async function switchEnvironment(environmentId: string) {
 }
 
 export async function registerEnvironment(payload: Omit<PostgresEnvironment, "id">) {
-  const response = await fetch("/api/v1/environments", {
+  const response = await apiFetch("/api/v1/environments", {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -37,7 +37,7 @@ export async function registerEnvironment(payload: Omit<PostgresEnvironment, "id
 }
 
 export async function createEnvironment(payload: CreateEnvironmentPayload) {
-  const response = await fetch("/api/v1/environments/create", {
+  const response = await apiFetch("/api/v1/environments/create", {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -51,7 +51,7 @@ export async function createEnvironment(payload: CreateEnvironmentPayload) {
 }
 
 export async function startEnvironment(environmentId: string) {
-  const response = await fetch(`/api/v1/environments/${environmentId}/start`, {
+  const response = await apiFetch(`/api/v1/environments/${environmentId}/start`, {
     method: "POST",
     headers: { Accept: "application/json" },
   });
@@ -64,7 +64,7 @@ export async function startEnvironment(environmentId: string) {
 }
 
 export async function stopEnvironment(environmentId: string) {
-  const response = await fetch(`/api/v1/environments/${environmentId}/stop`, {
+  const response = await apiFetch(`/api/v1/environments/${environmentId}/stop`, {
     method: "POST",
     headers: { Accept: "application/json" },
   });
@@ -77,7 +77,7 @@ export async function stopEnvironment(environmentId: string) {
 }
 
 export async function deleteEnvironment(environmentId: string, removeVolume = false) {
-  const response = await fetch(`/api/v1/environments/${environmentId}?remove_volume=${removeVolume}`, {
+  const response = await apiFetch(`/api/v1/environments/${environmentId}?remove_volume=${removeVolume}`, {
     method: "DELETE",
     headers: { Accept: "application/json" },
   });
@@ -90,7 +90,7 @@ export async function deleteEnvironment(environmentId: string, removeVolume = fa
 }
 
 export async function executeSql(environmentId: string, sql: string) {
-  const response = await fetch(`/api/v1/environments/${environmentId}/sql`, {
+  const response = await apiFetch(`/api/v1/environments/${environmentId}/sql`, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify({ sql }),

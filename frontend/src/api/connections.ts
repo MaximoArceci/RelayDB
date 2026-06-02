@@ -1,4 +1,4 @@
-import { apiGet } from "./client";
+import { apiFetch, apiGet } from "./client";
 import type { ConnectionSlot, ConnectionsResponse, CreateConnectionPayload, UpdateConnectionPayload } from "../types/connections";
 
 export function getConnections(signal?: AbortSignal) {
@@ -6,7 +6,7 @@ export function getConnections(signal?: AbortSignal) {
 }
 
 export async function createConnection(payload: CreateConnectionPayload) {
-  const response = await fetch("/api/v1/connections", {
+  const response = await apiFetch("/api/v1/connections", {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -21,7 +21,7 @@ export async function createConnection(payload: CreateConnectionPayload) {
 }
 
 export async function switchConnection(connectionId: string, environmentId: string) {
-  const response = await fetch(`/api/v1/connections/${connectionId}/switch/${environmentId}`, {
+  const response = await apiFetch(`/api/v1/connections/${connectionId}/switch/${environmentId}`, {
     method: "POST",
     headers: { Accept: "application/json" },
   });
@@ -35,7 +35,7 @@ export async function switchConnection(connectionId: string, environmentId: stri
 }
 
 export async function updateConnection(connectionId: string, payload: UpdateConnectionPayload) {
-  const response = await fetch(`/api/v1/connections/${connectionId}`, {
+  const response = await apiFetch(`/api/v1/connections/${connectionId}`, {
     method: "PATCH",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -50,7 +50,7 @@ export async function updateConnection(connectionId: string, payload: UpdateConn
 }
 
 export async function deleteConnection(connectionId: string) {
-  const response = await fetch(`/api/v1/connections/${connectionId}`, {
+  const response = await apiFetch(`/api/v1/connections/${connectionId}`, {
     method: "DELETE",
     headers: { Accept: "application/json" },
   });
