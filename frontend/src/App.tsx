@@ -1,4 +1,5 @@
 import { RelayDBShell } from "./layouts/RelayDBShell";
+import { ToastViewport } from "./components/ToastViewport";
 import { LandingPage } from "./pages/LandingPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { useEffect, useState } from "react";
@@ -15,12 +16,27 @@ export function App() {
   }, []);
 
   if (!path.startsWith("/app")) {
-    return <LandingPage />;
+    return (
+      <>
+        <LandingPage />
+        <ToastViewport />
+      </>
+    );
   }
 
   if (!path.startsWith("/app/projects/")) {
-    return <ProjectsPage />;
+    return (
+      <>
+        <ProjectsPage />
+        <ToastViewport />
+      </>
+    );
   }
 
-  return <RelayDBShell />;
+  return (
+    <>
+      <RelayDBShell />
+      <ToastViewport />
+    </>
+  );
 }

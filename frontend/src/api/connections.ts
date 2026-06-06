@@ -1,4 +1,5 @@
 import { apiFetch, apiGet } from "./client";
+import { responseError } from "./errors";
 import type { ConnectionSlot, ConnectionsResponse, CreateConnectionPayload, UpdateConnectionPayload } from "../types/connections";
 
 export function getConnections(signal?: AbortSignal) {
@@ -13,8 +14,7 @@ export async function createConnection(payload: CreateConnectionPayload) {
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Connection creation failed with ${response.status}`);
+    throw await responseError(response, `Connection creation failed with ${response.status}`);
   }
 
   return response.json() as Promise<ConnectionSlot>;
@@ -27,8 +27,7 @@ export async function switchConnection(connectionId: string, environmentId: stri
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Connection switch failed with ${response.status}`);
+    throw await responseError(response, `Connection switch failed with ${response.status}`);
   }
 
   return response.json() as Promise<ConnectionSlot>;
@@ -42,8 +41,7 @@ export async function updateConnection(connectionId: string, payload: UpdateConn
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Connection update failed with ${response.status}`);
+    throw await responseError(response, `Connection update failed with ${response.status}`);
   }
 
   return response.json() as Promise<ConnectionSlot>;
@@ -56,8 +54,7 @@ export async function deleteConnection(connectionId: string) {
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Connection delete failed with ${response.status}`);
+    throw await responseError(response, `Connection delete failed with ${response.status}`);
   }
 
   return response.json() as Promise<ConnectionSlot>;

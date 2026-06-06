@@ -1,4 +1,5 @@
 import { apiFetch, apiGet } from "./client";
+import { responseError } from "./errors";
 import type { ActiveProjectResponse, CreateProjectPayload, Project, ProjectsResponse } from "../types/projects";
 
 export function getProjects(signal?: AbortSignal) {
@@ -13,8 +14,7 @@ export async function createProject(payload: CreateProjectPayload) {
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Project creation failed with ${response.status}`);
+    throw await responseError(response, `Project creation failed with ${response.status}`);
   }
 
   return response.json() as Promise<Project>;
@@ -27,8 +27,7 @@ export async function switchProject(projectId: string) {
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Project switch failed with ${response.status}`);
+    throw await responseError(response, `Project switch failed with ${response.status}`);
   }
 
   return response.json() as Promise<ActiveProjectResponse>;

@@ -4,10 +4,22 @@ import { createEnvironment, deleteEnvironment, getActiveEnvironment, getEnvironm
 import { createProject, getProjects, switchProject } from "../api/projects";
 import { createSnapshot, deleteSnapshot, downloadSnapshot, getSnapshots, restoreSnapshot, uploadSnapshot } from "../api/snapshots";
 import { useEnvironmentStore } from "../stores/environmentStore";
+import { useToastStore } from "../stores/toastStore";
 
 export function useEnvironmentPlatform() {
   const state = useEnvironmentStore();
   const setState = useEnvironmentStore((store) => store.setState);
+  const pushToast = useToastStore((store) => store.pushToast);
+
+  function errorMessage(error: unknown, fallback: string) {
+    return error instanceof Error ? error.message : fallback;
+  }
+
+  function notifyError(title: string, error: unknown, fallback: string) {
+    const description = errorMessage(error, fallback);
+    pushToast({ tone: "error", title, description });
+    return description;
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -28,7 +40,7 @@ export function useEnvironmentPlatform() {
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          setState({ error: error instanceof Error ? error.message : "Unable to load environments", isLoading: false });
+          setState({ error: notifyError("Unable to load RelayDB", error, "Unable to load environments"), isLoading: false });
         }
       });
 
@@ -66,7 +78,7 @@ export function useEnvironmentPlatform() {
         active: previousActive,
         selectedEnvironmentId: previousActive?.environment?.id ?? null,
         isSwitching: false,
-        error: error instanceof Error ? error.message : "Unable to switch environment",
+        error: notifyError("Environment switch failed", error, "Unable to switch environment"),
       });
     }
   }
@@ -100,7 +112,7 @@ export function useEnvironmentPlatform() {
     } catch (error) {
       setState({
         isProvisioning: false,
-        error: error instanceof Error ? error.message : "Unable to provision environment",
+        error: notifyError("Environment creation failed", error, "Unable to provision environment"),
       });
     }
   }
@@ -112,7 +124,7 @@ export function useEnvironmentPlatform() {
       await refreshEnvironments();
       setState({ actingEnvironmentId: null });
     } catch (error) {
-      setState({ actingEnvironmentId: null, error: error instanceof Error ? error.message : "Unable to start environment" });
+      setState({ actingEnvironmentId: null, error: notifyError("Environment start failed", error, "Unable to start environment") });
     }
   }
 
@@ -123,7 +135,7 @@ export function useEnvironmentPlatform() {
       await refreshEnvironments();
       setState({ actingEnvironmentId: null });
     } catch (error) {
-      setState({ actingEnvironmentId: null, error: error instanceof Error ? error.message : "Unable to stop environment" });
+      setState({ actingEnvironmentId: null, error: notifyError("Environment stop failed", error, "Unable to stop environment") });
     }
   }
 
@@ -134,7 +146,7 @@ export function useEnvironmentPlatform() {
       await refreshEnvironments();
       setState({ actingEnvironmentId: null });
     } catch (error) {
-      setState({ actingEnvironmentId: null, error: error instanceof Error ? error.message : "Unable to delete environment" });
+      setState({ actingEnvironmentId: null, error: notifyError("Environment delete failed", error, "Unable to delete environment") });
     }
   }
 
@@ -145,7 +157,7 @@ export function useEnvironmentPlatform() {
       await refreshEnvironments();
       setState({ isSnapshotting: false });
     } catch (error) {
-      setState({ isSnapshotting: false, error: error instanceof Error ? error.message : "Unable to create snapshot" });
+      setState({ isSnapshotting: false, error: notifyError("Snapshot creation failed", error, "Unable to create snapshot") });
     }
   }
 
@@ -156,7 +168,7 @@ export function useEnvironmentPlatform() {
       await refreshEnvironments();
       setState({ isSnapshotting: false });
     } catch (error) {
-      setState({ isSnapshotting: false, error: error instanceof Error ? error.message : "Unable to upload snapshot" });
+      setState({ isSnapshotting: false, error: notifyError("Snapshot upload failed", error, "Unable to upload snapshot") });
     }
   }
 
@@ -173,7 +185,7 @@ export function useEnvironmentPlatform() {
       anchor.remove();
       URL.revokeObjectURL(url);
     } catch (error) {
-      setState({ error: error instanceof Error ? error.message : "Unable to download snapshot" });
+      setState({ error: notifyError("Snapshot download failed", error, "Unable to download snapshot") });
     }
   }
 
@@ -184,7 +196,7 @@ export function useEnvironmentPlatform() {
       await refreshEnvironments();
       setState({ isSnapshotting: false });
     } catch (error) {
-      setState({ isSnapshotting: false, error: error instanceof Error ? error.message : "Unable to restore snapshot" });
+      setState({ isSnapshotting: false, error: notifyError("Snapshot restore failed", error, "Unable to restore snapshot") });
     }
   }
 
@@ -195,7 +207,7 @@ export function useEnvironmentPlatform() {
       await refreshEnvironments();
       setState({ isSnapshotting: false });
     } catch (error) {
-      setState({ isSnapshotting: false, error: error instanceof Error ? error.message : "Unable to delete snapshot" });
+      setState({ isSnapshotting: false, error: notifyError("Snapshot delete failed", error, "Unable to delete snapshot") });
     }
   }
 
@@ -208,7 +220,7 @@ export function useEnvironmentPlatform() {
       setState({ isCreatingConnection: false });
       return connection;
     } catch (error) {
-      setState({ isCreatingConnection: false, error: error instanceof Error ? error.message : "Unable to create stable connection" });
+      setState({ isCreatingConnection: false, error: notifyError("Connection creation failed", error, "Unable to create stable connection") });
       throw error;
     }
   }
@@ -237,7 +249,7 @@ export function useEnvironmentPlatform() {
       setState({
         connections: previousConnections,
         actingConnectionId: null,
-        error: error instanceof Error ? error.message : "Unable to switch stable connection",
+        error: notifyError("Connection switch failed", error, "Unable to switch stable connection"),
       });
       throw error;
     }
@@ -273,7 +285,7 @@ export function useEnvironmentPlatform() {
       setState({
         connections: previousConnections,
         actingConnectionId: null,
-        error: error instanceof Error ? error.message : "Unable to update stable connection",
+        error: notifyError("Connection update failed", error, "Unable to update stable connection"),
       });
       throw error;
     }
@@ -292,7 +304,7 @@ export function useEnvironmentPlatform() {
       setState({
         connections: previousConnections,
         actingConnectionId: null,
-        error: error instanceof Error ? error.message : "Unable to delete stable connection",
+        error: notifyError("Connection delete failed", error, "Unable to delete stable connection"),
       });
       throw error;
     }
@@ -307,7 +319,7 @@ export function useEnvironmentPlatform() {
       setState({ isCreatingProject: false });
       return project;
     } catch (error) {
-      setState({ isCreatingProject: false, error: error instanceof Error ? error.message : "Unable to create project" });
+      setState({ isCreatingProject: false, error: notifyError("Project creation failed", error, "Unable to create project") });
       throw error;
     }
   }
@@ -319,7 +331,7 @@ export function useEnvironmentPlatform() {
       await refreshEnvironments();
       setState({ isLoading: false });
     } catch (error) {
-      setState({ isLoading: false, error: error instanceof Error ? error.message : "Unable to switch project" });
+      setState({ isLoading: false, error: notifyError("Project switch failed", error, "Unable to switch project") });
     }
   }
 

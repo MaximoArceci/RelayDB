@@ -1,6 +1,7 @@
 import { Play, Table2 } from "lucide-react";
 import { useState } from "react";
 import { executeSql } from "../../api/environments";
+import { useToastStore } from "../../stores/toastStore";
 import type { PostgresEnvironment, SqlExecutionResponse } from "../../types/environments";
 
 export function SqlConsole({ environment }: { environment: PostgresEnvironment }) {
@@ -8,10 +9,16 @@ export function SqlConsole({ environment }: { environment: PostgresEnvironment }
   const [result, setResult] = useState<SqlExecutionResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const pushToast = useToastStore((store) => store.pushToast);
 
   async function runSql() {
     const statement = sql.trim();
     if (!statement) {
+      pushToast({ tone: "warning", title: "SQL statement required", description: "Write a SQL statement before running the console." });
+      return;
+    }
+    if (environment.status !== "running") {
+      pushToast({ tone: "warning", title: "Environment is not running", description: `${environment.name} must be running before SQL can execute.` });
       return;
     }
 
@@ -20,8 +27,10 @@ export function SqlConsole({ environment }: { environment: PostgresEnvironment }
     try {
       setResult(await executeSql(environment.id, statement));
     } catch (runError) {
+      const description = runError instanceof Error ? runError.message : "SQL execution failed";
       setResult(null);
-      setError(runError instanceof Error ? runError.message : "SQL execution failed");
+      setError(description);
+      pushToast({ tone: "error", title: "SQL execution failed", description });
     } finally {
       setIsRunning(false);
     }

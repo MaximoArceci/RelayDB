@@ -1,3 +1,5 @@
+import { responseError } from "./errors";
+
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export function apiUrl(path: string) {
@@ -15,7 +17,7 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   });
 
   if (!response.ok) {
-    throw new Error(`RelayDB API request failed with ${response.status}`);
+    throw await responseError(response, `RelayDB API request failed with ${response.status}`);
   }
 
   return response.json() as Promise<T>;

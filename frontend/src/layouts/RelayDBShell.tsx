@@ -6,6 +6,7 @@ import { Modal } from "../components/Modal";
 import { useEnvironmentPlatform } from "../hooks/useEnvironmentPlatform";
 import { ActiveEnvironmentView } from "../modules/environments/ActiveEnvironmentView";
 import { EnvironmentList } from "../modules/environments/EnvironmentList";
+import { useToastStore } from "../stores/toastStore";
 
 const ADD_CONNECTION_VALUE = "__add_stable_connection__";
 
@@ -51,6 +52,7 @@ export function RelayDBShell() {
   const [connectionOwner, setConnectionOwner] = useState("");
   const [connectionPort, setConnectionPort] = useState("15432");
   const [connectionTargetId, setConnectionTargetId] = useState("");
+  const pushToast = useToastStore((store) => store.pushToast);
   const selectedConnection = connections.find((connection) => connection.id === selectedConnectionId) ?? connections[0] ?? null;
   const selectedConnectionTargetId = selectedConnection?.target_environment_id ?? "";
   const selectedConnectionTarget = environments.find((environment) => environment.id === selectedConnectionTargetId) ?? null;
@@ -93,7 +95,25 @@ export function RelayDBShell() {
     const owner = connectionOwner.trim();
     const stablePort = Number(connectionPort);
     const targetId = connectionTargetId || environments[0]?.id;
-    if (!name || !owner || !targetId || !Number.isInteger(stablePort)) {
+    if (!name || !owner) {
+      pushToast({ tone: "warning", title: "Connection details required", description: "Name and owner are required before creating a stable route." });
+      return;
+    }
+    if (!targetId) {
+      pushToast({ tone: "warning", title: "No target environment", description: "Create an environment before assigning a stable connection." });
+      return;
+    }
+    if (!Number.isInteger(stablePort) || stablePort < 1 || stablePort > 65535) {
+      pushToast({ tone: "warning", title: "Invalid stable port", description: "Choose a TCP port between 1 and 65535." });
+      return;
+    }
+    const portOwner = connections.find((connection) => connection.stable_port === stablePort && connection.id !== editingConnection?.id);
+    if (portOwner) {
+      pushToast({
+        tone: "warning",
+        title: "Port already in use",
+        description: `localhost:${stablePort} is already assigned to ${portOwner.name}. Choose another stable port.`,
+      });
       return;
     }
     const connection = editingConnection

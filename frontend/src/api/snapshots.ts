@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import { responseError } from "./errors";
 import type { Snapshot, SnapshotListResponse } from "../types/snapshots";
 
 export async function getSnapshots(signal?: AbortSignal) {
@@ -8,7 +9,7 @@ export async function getSnapshots(signal?: AbortSignal) {
   });
 
   if (!response.ok) {
-    throw new Error(`Snapshot list failed with ${response.status}`);
+    throw await responseError(response, `Snapshot list failed with ${response.status}`);
   }
 
   return response.json() as Promise<SnapshotListResponse>;
@@ -22,8 +23,7 @@ export async function createSnapshot(environmentId: string, name: string) {
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Snapshot creation failed with ${response.status}`);
+    throw await responseError(response, `Snapshot creation failed with ${response.status}`);
   }
 
   return response.json() as Promise<Snapshot>;
@@ -42,8 +42,7 @@ export async function uploadSnapshot(environmentId: string, name: string, file: 
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Snapshot upload failed with ${response.status}`);
+    throw await responseError(response, `Snapshot upload failed with ${response.status}`);
   }
 
   return response.json() as Promise<Snapshot>;
@@ -55,8 +54,7 @@ export async function downloadSnapshot(snapshotId: string) {
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Snapshot download failed with ${response.status}`);
+    throw await responseError(response, `Snapshot download failed with ${response.status}`);
   }
 
   return response.blob();
@@ -69,8 +67,7 @@ export async function restoreSnapshot(snapshotId: string, environmentId: string)
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Snapshot restore failed with ${response.status}`);
+    throw await responseError(response, `Snapshot restore failed with ${response.status}`);
   }
 
   return response.json() as Promise<Snapshot>;
@@ -83,8 +80,7 @@ export async function deleteSnapshot(snapshotId: string) {
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `Snapshot delete failed with ${response.status}`);
+    throw await responseError(response, `Snapshot delete failed with ${response.status}`);
   }
 
   return response.json() as Promise<Snapshot>;

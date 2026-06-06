@@ -1,4 +1,5 @@
 import { apiFetch, apiGet } from "./client";
+import { responseError } from "./errors";
 import type { ActiveEnvironmentResponse, CreateEnvironmentPayload, EnvironmentsResponse, PostgresEnvironment, SqlExecutionResponse } from "../types/environments";
 
 export function getEnvironments(signal?: AbortSignal) {
@@ -16,7 +17,7 @@ export async function switchEnvironment(environmentId: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Environment switch failed with ${response.status}`);
+    throw await responseError(response, `Environment switch failed with ${response.status}`);
   }
 
   return response.json() as Promise<{ active: PostgresEnvironment; stable_endpoint: string }>;
@@ -30,7 +31,7 @@ export async function registerEnvironment(payload: Omit<PostgresEnvironment, "id
   });
 
   if (!response.ok) {
-    throw new Error(`Environment registration failed with ${response.status}`);
+    throw await responseError(response, `Environment registration failed with ${response.status}`);
   }
 
   return response.json() as Promise<PostgresEnvironment>;
@@ -44,7 +45,7 @@ export async function createEnvironment(payload: CreateEnvironmentPayload) {
   });
 
   if (!response.ok) {
-    throw new Error(`Environment provisioning failed with ${response.status}`);
+    throw await responseError(response, `Environment provisioning failed with ${response.status}`);
   }
 
   return response.json() as Promise<PostgresEnvironment>;
@@ -57,7 +58,7 @@ export async function startEnvironment(environmentId: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Environment start failed with ${response.status}`);
+    throw await responseError(response, `Environment start failed with ${response.status}`);
   }
 
   return response.json() as Promise<PostgresEnvironment>;
@@ -70,7 +71,7 @@ export async function stopEnvironment(environmentId: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Environment stop failed with ${response.status}`);
+    throw await responseError(response, `Environment stop failed with ${response.status}`);
   }
 
   return response.json() as Promise<PostgresEnvironment>;
@@ -83,7 +84,7 @@ export async function deleteEnvironment(environmentId: string, removeVolume = fa
   });
 
   if (!response.ok) {
-    throw new Error(`Environment delete failed with ${response.status}`);
+    throw await responseError(response, `Environment delete failed with ${response.status}`);
   }
 
   return response.json() as Promise<PostgresEnvironment>;
@@ -97,8 +98,7 @@ export async function executeSql(environmentId: string, sql: string) {
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new Error(detail?.detail ?? `SQL execution failed with ${response.status}`);
+    throw await responseError(response, `SQL execution failed with ${response.status}`);
   }
 
   return response.json() as Promise<SqlExecutionResponse>;
