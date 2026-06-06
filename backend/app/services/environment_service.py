@@ -30,6 +30,8 @@ class EnvironmentService:
         self.docker_service = docker_service or DockerService()
 
     def provision_postgres_environment(self, payload: EnvironmentProvisionRequest) -> Environment:
+        self.registry.find_project(self.registry.read_state(), payload.project_id)
+
         environment_id = str(uuid4())
         suffix = environment_id.split("-")[0]
         slug = slugify(payload.name)

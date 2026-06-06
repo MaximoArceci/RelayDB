@@ -72,16 +72,6 @@ class ConnectionService:
         if not changes:
             return self.find_connection(state, connection_id)
 
-        target_environment_id = changes.get("target_environment_id")
-        if target_environment_id is not None:
-            environment = self.registry.find_environment(state, target_environment_id)
-            next_project_id = changes.get("project_id")
-            if next_project_id is not None:
-                self.registry.find_project(state, next_project_id)
-            for item in state.get("connections", []):
-                if item["id"] == connection_id and environment.project_id != (next_project_id or item.get("project_id")):
-                    raise HTTPException(status_code=400, detail="Connection target belongs to another project")
-
         stable_port = changes.get("stable_port")
         if stable_port is not None and any(
             item["id"] != connection_id and item["stable_port"] == stable_port for item in state.get("connections", [])
@@ -90,6 +80,12 @@ class ConnectionService:
 
         for index, item in enumerate(state.get("connections", [])):
             if item["id"] == connection_id:
+                next_project_id = changes.get("project_id", item.get("project_id"))
+                next_target_environment_id = changes.get("target_environment_id", item["target_environment_id"])
+                self.registry.find_project(state, next_project_id)
+                environment = self.registry.find_environment(state, next_target_environment_id)
+                if environment.project_id != next_project_id:
+                    raise HTTPException(status_code=400, detail="Connection target belongs to another project")
                 updated = {**item, **changes}
                 state["connections"][index] = updated
                 self.registry.write_state(state)
