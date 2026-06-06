@@ -149,6 +149,33 @@ Open:
 - Backend API: http://localhost:8000
 - OpenAPI docs: http://localhost:8000/docs
 
+CLI:
+
+```bash
+./bin/relaydb health
+./bin/relaydb status
+./bin/relaydb docs
+./bin/relaydb projects list
+./bin/relaydb env list
+```
+
+The same commands can run inside Compose:
+
+```bash
+docker compose run --rm backend python -m app.cli health
+docker compose run --rm backend python -m app.cli status
+docker compose run --rm backend python -m app.cli docs
+docker compose run --rm backend python -m app.cli projects list
+docker compose run --rm backend python -m app.cli env list
+```
+
+From a local Python environment with the backend package on `PYTHONPATH`, the
+same CLI can target any RelayDB API:
+
+```bash
+RELAYDB_API_URL=http://localhost:8000 python -m app.cli health
+```
+
 If your machine already uses port `5432`, start RelayDB with another public router port:
 
 ```bash
@@ -236,6 +263,74 @@ Create snapshot:
 {
   "name": "before-auth-refactor"
 }
+```
+
+## CLI Overview
+
+The RelayDB CLI mirrors the control UI and talks to the FastAPI control API.
+Use `--api-url` or `RELAYDB_API_URL` to point it at a non-default API host.
+Add `--json` to any command for machine-readable output.
+
+```bash
+python -m app.cli --api-url http://localhost:8000 --json env list
+```
+
+Runtime and documentation:
+
+```bash
+python -m app.cli health
+python -m app.cli status
+python -m app.cli docs
+python -m app.cli docs --frontend-url http://localhost:3001
+```
+
+Projects:
+
+```bash
+python -m app.cli projects list
+python -m app.cli projects create "Billing service" --description "Local billing databases"
+python -m app.cli projects use billing-service
+python -m app.cli projects current
+```
+
+Environments:
+
+```bash
+python -m app.cli env list
+python -m app.cli env create "feature-a" --project billing-service
+python -m app.cli env use feature-a
+python -m app.cli env start feature-a
+python -m app.cli env stop feature-a
+python -m app.cli env delete feature-a
+python -m app.cli env delete feature-a --keep-volume
+```
+
+Stable connections:
+
+```bash
+python -m app.cli connections list
+python -m app.cli connections create max-local --owner max --port 15432 --target feature-a
+python -m app.cli connections use max-local feature-b
+python -m app.cli connections update max-local --port 25432 --target feature-a
+python -m app.cli connections delete max-local
+```
+
+SQL:
+
+```bash
+python -m app.cli sql feature-a --query "select current_database(), current_user;"
+python -m app.cli sql feature-a --file ./migration.sql
+```
+
+Snapshots:
+
+```bash
+python -m app.cli snapshots list
+python -m app.cli snapshots create feature-a before-auth-refactor
+python -m app.cli snapshots restore before-auth-refactor feature-b
+python -m app.cli snapshots download before-auth-refactor --output ./before-auth-refactor.dump
+python -m app.cli snapshots upload feature-a imported-state ./state.dump
+python -m app.cli snapshots delete before-auth-refactor
 ```
 
 ## Docker Compose Services
